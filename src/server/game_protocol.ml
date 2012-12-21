@@ -14,8 +14,8 @@ open Socket
 open Name
 
 (*
-let delay_base = 0.5
-let delay_random = 3.0
+  let delay_base = 0.5
+  let delay_random = 3.0
 *)
 let delay_base = 0.1
 let delay_random = 0.1
@@ -37,19 +37,19 @@ let enter_message = function
 
 let state_greeting_msg = function
 	| UnAuthenticated -> Some "Please enter your name.\r\n";
-    | GetPass -> Some ("Please enter your password.\r\n" ^ censor_password)
-    | GetSex -> Some "Please enter your sex (M/F).\r\n"
-    | NewPass1 -> Some ("Please enter a password.\r\n" ^ censor_password)
-    | NewPass2 -> Some ("Please re-enter this password.\r\n" ^ censor_password)
-    | LoggedIn _ -> Some "Welcome!\r\n\r\n"
+	| GetPass -> Some ("Please enter your password.\r\n" ^ censor_password)
+	| GetSex -> Some "Please enter your sex (M/F).\r\n"
+	| NewPass1 -> Some ("Please enter a password.\r\n" ^ censor_password)
+	| NewPass2 -> Some ("Please re-enter this password.\r\n" ^ censor_password)
+	| LoggedIn _ -> Some "Welcome!\r\n\r\n"
 	| NewConnection -> Some "MOTD goes here.\r\n"
 	| ConfirmName name -> Some ("Did I get the name right, " ^ 
-										(name)^ "?\r\n")
+									   (name)^ "?\r\n")
 	| Entering (_, i) ->
 		let delay = (delay_base +. Random.float delay_random) in
 		let d = Delay.do_delay_crlf ~delay in
 			Some ((enter_message i) ^ d)
-    | LoggedOut -> None
+	| LoggedOut -> None
 
 let exit_state_message = function
 	| ConfirmName _ -> Some "Ok, well try again ...\r\n"
@@ -87,7 +87,7 @@ let enter sess name =
 	transition_state sess (Entering (name, 2))
 
 let logout sess p =
-(*	Model.Tree.remove_from (Model.Tree.parent p) p; *)
+	(*	Model.Tree.remove_from (Model.Tree.parent p) p; *)
 	Model.destroy p;
 	Model.post_event (Model.Logout p);
 	transition_state sess LoggedOut
@@ -95,17 +95,17 @@ let logout sess p =
 let handle_login sess line =
 	if Passwd.sensible_name line 
 	then (
-(*		if not (Passwd.name_too_similar ~name:line)
-		then ( *)
+		(*		if not (Passwd.name_too_similar ~name:line)
+				then ( *)
 		let n = Passwd.normalise_name line in
 			set_name sess n;
 			if Passwd.player_name_known n
 			then transition_state sess GetPass
 			else transition_state sess (ConfirmName n)
-(*		  else emit sess "That name is too similar to someone else's.\r\n" *)
+	(*		  else emit sess "That name is too similar to someone else's.\r\n" *)
 	)
-	else
-		emit sess "That's not a sensible name.\r\n"
+		  else
+			emit sess "That's not a sensible name.\r\n"
 
 let get_new_password sess p =
 	if Passwd.sensible_password p 
@@ -133,29 +133,29 @@ let player_new_line p line =
 	Commands.parse_line p line
 
 let get_sex sess line =
-  try let sex = Sex.sex_of_string line in
-      ignore(sex);
-      transition_state sess NewPass1
-  with _ ->
-      transition_state sess GetSex
+	try let sex = Sex.sex_of_string line in
+			ignore(sex);
+			transition_state sess NewPass1
+	with _ ->
+		transition_state sess GetSex
 
 let handle_line sess line = function
 	| LoggedIn p -> player_new_line p line
 	| UnAuthenticated -> handle_login sess line
 	| GetPass -> get_password sess line
 	| ConfirmName _ -> 
-		  if (onechar line) 
-		  then transition_state sess GetSex
-		  else transition_state sess UnAuthenticated
+		if (onechar line) 
+		then transition_state sess GetSex
+		else transition_state sess UnAuthenticated
 	| GetSex -> get_sex sess line
 	| NewPass1 -> get_new_password sess line
 	| NewPass2 -> confirm_new_password sess line
 	| LoggedOut -> disconnect sess
 	| NewConnection -> emit sess "aaargh\r\n"
 	| Entering (name, i) -> 
-			  (if i > 0
-			  then transition_state sess (Entering (name, i - 1))
-			  else login sess name)
+		(if i > 0
+		 then transition_state sess (Entering (name, i - 1))
+		 else login sess name)
 
 let handle_blank_line sess = function
 	| UnAuthenticated -> emit sess "Hello? Who is that?\r\n"
@@ -168,9 +168,9 @@ let handle_blank_line sess = function
 	| LoggedOut
 	| NewPass2 -> emit sess "What?\r\n"
 	| Entering (name, i) -> 
-			  (if i > 0
-			  then transition_state sess (Entering (name, i - 1))
-			  else login sess name)
+		(if i > 0
+		 then transition_state sess (Entering (name, i - 1))
+		 else login sess name)
 
 let new_line s line =
 	let sess = get_session s in
