@@ -339,7 +339,7 @@ let get_level p =
 		{ lv_level = l }
 
 let change_level p ~old_level =
-	print_endline "level!"
+	()
 
 let level_compare x y =
 	compare x.lv_level y.lv_level

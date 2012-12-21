@@ -180,7 +180,7 @@ let monster_tick ~actor ~state =
 		| false -> seek_bindable_player ~actor ~state
 		| true -> interact_with_bindee ~actor ~state)
 	with e ->
-		print_endline ("Monster error: " ^ (Printexc.to_string e)));
+		log ("Monster error: " ^ (Printexc.to_string e)));
 	if state.ms_heartbeats <= 0
 	then stop_daemon ~actor ~state
 	else state.ms_next_run_time <- get_next_run_time ()

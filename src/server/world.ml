@@ -118,8 +118,6 @@ let register_monster ~id ~name ~adam ~num =
 		Hashtbl.replace registry id o
 
 let register_door ~id ~name ~adam ~num =
-	(*print_int id; print_string name; 
-	  print_endline " door";*)
 	Hashtbl.replace doors id (name, adam, num)
 
 let register_object id name adam num otype parent =

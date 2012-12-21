@@ -25,8 +25,6 @@ let rec unique cmp = function
 
 (* FIXME: we should exclude broken fights here *)
 let handle_timed_out_fight_rounds () =
-	print_endline "doing fight timeout tick fn"; flush_all ();
-
 	let now = Unix.gettimeofday () in
 		
 	let timeout ~player combat =
