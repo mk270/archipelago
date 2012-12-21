@@ -11,11 +11,12 @@
 
 
 open OUnit
-
 open Name
 
+let db_file = "../db/arch.db"
+
 let setup () = 
-	World.init ()
+	World.init db_file
 
 let teardown () = 
 	World.fini ()

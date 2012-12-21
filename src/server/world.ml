@@ -15,8 +15,6 @@ open Name
 open Sqlite3
 open Aperture
 
-let db_file = "../db/arch.db"
-
 exception World_misconfigured
 
 type aperture_info = {
@@ -319,19 +317,17 @@ let load_table ~db ~table =
 let load_tables ~db =
 	List.iter (fun table -> load_table ~db ~table) table_info
 
-let load_world_from_db () =
+let load_world_from_db db_file =
 	let db = db_open db_file in
 		load_tables ~db;
 		ignore(db_close db);
 		parent_objects ();
 		link_links ();
 		link_apertures ();
-		clear_hash ();
-		()
+		clear_hash ()
 
-let init () = 
-    load_world_from_db ();
-    ()
+let init db_file = 
+    load_world_from_db db_file
 
 let flush_special_objects () = 
 	Hashtbl.clear special_objects

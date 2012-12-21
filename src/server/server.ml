@@ -19,9 +19,9 @@ let callbacks = [
 	Leaving.check_deaths;
 ]
 
-let run () =
+let run port =
 	let h = Connection.line_protocol in
-	let l = Socket.create (Listener (2500, h)) in
+	let l = Socket.create (Listener (port, h)) in
 	let m = Multiplexer.create () in
 	let register cb = Multiplexer.add_timeout_callback m (fun () -> cb ()) in
 		Multiplexer.add_socket m l;

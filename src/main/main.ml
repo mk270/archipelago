@@ -9,9 +9,11 @@
   (at your option) any later version.
 *)
 
+let db_file = "../db/arch.db"
+let port = 2500
 
 let init_all () =
-	World.init ();
+	World.init db_file;
 	Commands.init ();
 	Persona.init_spell_book ();
 	Passwd.init ();
@@ -33,7 +35,7 @@ let main ~test_mode =
 	then Test_all.run ()
 	else (
 		init_all ();
-		Server.run ();
+		Server.run port;
 		fini_all ()
 	)
 
