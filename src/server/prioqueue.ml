@@ -1,18 +1,18 @@
 (*
   Archipelago, a multi-user dungeon (MUD) server, by Martin Keegan
 
-  Copyright (C) 2009-2012  Martin Keegan
+  Copyright (C) 2009-2012  Martin Keegan, except as noted below
 
   This programme is free software; you may redistribute and/or modify
   it under the terms of the GNU Affero General Public Licence as published by
   the Free Software Foundation, either version 3 of said Licence, or
   (at your option) any later version.
-*)
 
-(* originally cut and pasted from ocaml docs
-   
-   it's too small to reimplement any other way if you're going to use
-   an unbalanced tree
+  The guts of the priority queue implementation are originally cut and 
+  pasted from OCaml docs; they are too small, and too strongly 
+  determined by technical considerations to be covered by copyright 
+  (once you've decided to use an unbalanced tree, the code is going 
+  to look just like this).
  *)
 
 type priority = float
