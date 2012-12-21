@@ -15,9 +15,7 @@ let hack_passwd_db = Hashtbl.create 5
 (* FIXME *)
 let init_hack_passwd_db () =
   (
-      Hashtbl.replace hack_passwd_db "Nem" "ook";
-	  Hashtbl.replace hack_passwd_db "Edf" "sim";
-      print_endline "setting up hack password db";
+      Hashtbl.replace hack_passwd_db "Wizard" "wizard";
       flush_all ()
   )
 
