@@ -125,12 +125,10 @@ let register_door ~id ~name ~adam ~num =
 	Hashtbl.replace doors id (name, adam, num)
 
 let register_object id name adam num otype parent =
-	let id = int_of_string (s_of_so id) in
-	let name = s_of_so name in
-	let adam = adam_of_string (s_of_so adam) in
-	let num = number_of_int (int_of_string (s_of_so num)) in
-	let otype = s_of_so otype in
-	let parent = int_of_string (s_of_so parent) in
+	let id = int_of_string id in
+	let adam = adam_of_string adam in
+	let num = number_of_int (int_of_string num) in
+	let parent = int_of_string parent in
 		if parent != 0 
 		then Hashtbl.replace parents id parent;
 		match otype with
@@ -143,7 +141,7 @@ let register_object id name adam num otype parent =
 let object_row row header = 
 	(
 		match row with
-			| [|id;name;adam;num;otype;parent|] -> 
+			| [| Some id; Some name; Some adam; Some num; Some otype; Some parent|] -> 
 				  register_object id name adam num otype parent
 			| _ -> failwith "Database schema error (or something)"
 	); 
@@ -151,19 +149,17 @@ let object_row row header =
 
 let objattr_row row header =
 	match row with
-		| [| id ; name ; value |] ->
-			  let id = int_of_string (s_of_so id) in
-			  let name = s_of_so name in
-			  let value = s_of_so value in
+		| [| Some id ; Some name ; Some value |] ->
+			  let id = int_of_string id in
 				  Hashtbl.replace object_attributes (id, name) value 
 		| _ -> failwith "Database schema error (or something)"
 
 let objlink_row row header =
 	match row with
-		| [| src ; dst ; dir |] -> 
-			  let src = int_of_string (s_of_so src) in
-			  let dst = int_of_string (s_of_so dst) in
-			  let dir = int_of_string (s_of_so dir) in
+		| [| Some src ; Some dst ; Some dir |] -> 
+			  let src = int_of_string src in
+			  let dst = int_of_string dst in
+			  let dir = int_of_string dir in
 				  (*  add_link 
 					  (Hashtbl.find registry src) 
 					  (Hashtbl.find registry dst) dir None *)
@@ -172,20 +168,20 @@ let objlink_row row header =
 
 let linkobj_row row header =
 	match row with
-		| [| src ; dst ; obj ; dir |] ->
-			  let src = int_of_string (s_of_so src) in
-			  let dst = int_of_string (s_of_so dst) in
-			  let dir = direction_of_int (int_of_string (s_of_so dir)) in
-			  let obj = int_of_string (s_of_so obj) in
+		| [| Some src ; Some dst ; Some obj ; Some dir |] ->
+			  let src = int_of_string src in
+			  let dst = int_of_string dst in
+			  let dir = direction_of_int (int_of_string dir) in
+			  let obj = int_of_string obj in
 				  Hashtbl.replace portals (src, dst, dir) obj
 		| _ -> assert false
 
 let linkreqobj_row row header =
 	match row with
-		| [| src ; dst ; obj |] ->
-			  let src = int_of_string (s_of_so src) in
-			  let dst = int_of_string (s_of_so dst) in
-			  let obj = int_of_string (s_of_so obj) in
+		| [| Some src ; Some dst ; Some obj |] ->
+			  let src = int_of_string src in
+			  let dst = int_of_string dst in
+			  let obj = int_of_string obj in
 			  let obj' = Hashtbl.find registry obj in
 				  Hashtbl.replace link_req_items (src, dst) obj'
 		| _ -> assert false
@@ -228,32 +224,29 @@ let link_links () =
 
 let description_row row header =
 	match row with
-		| [| id ; desc |] ->
+		| [| Some id ; Some desc |] ->
 			  Hashtbl.replace descriptions 
-				  (int_of_string (s_of_so id))
-				  (s_of_so desc)
+				  (int_of_string id)
+				  desc
 		| _ -> assert false
 
 let objflag_row row header =
 	match row with
-		| [| id ; flag |] ->
-			  Hashtbl.add flags (int_of_string (s_of_so id))
-				  (s_of_so flag)
+		| [| Some id ; Some flag |] ->
+			  Hashtbl.add flags (int_of_string id) flag
 		| _ -> assert false
 
 let objstat_row row header =
 	match row with
-		| [| id ; stat_id ; stat_value |] ->
-			  Hashtbl.add stats (int_of_string (s_of_so id))
-				  ( (s_of_so stat_id), (s_of_so stat_value) )
+		| [| Some id ; Some stat_id ; Some stat_value |] ->
+			  Hashtbl.add stats (int_of_string id)
+				  ( stat_id, stat_value )
 		| _ -> assert false
 
 let aperture_row row header =
 	match row with
-		| [| id ; state ; trapped ; accessor |] ->
-			  let id = int_of_string (s_of_so id) in
-			  let state = s_of_so state in
-			  let trapped = s_of_so trapped in
+		| [| Some id ; Some state ; Some trapped ; accessor |] ->
+			  let id = int_of_string id in
 			  let accessor = match accessor with
 				  | Some s -> Some (int_of_string s)
 				  | None -> None
