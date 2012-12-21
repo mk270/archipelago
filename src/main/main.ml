@@ -9,10 +9,10 @@
   (at your option) any later version.
 *)
 
-let db_file = "../db/arch.db"
-let port = 2500
+let default_db_file = "../db/arch.db"
+let default_port = 2500
 
-let init_all () =
+let init_all db_file =
 	World.init db_file;
 	Commands.init ();
 	Persona.init_spell_book ();
@@ -30,19 +30,23 @@ let fini_all () =
 	Commands.fini ();
 	World.fini ()
 
-let main ~test_mode =
+let main ~test_mode port db_file =
 	if test_mode
 	then Test_all.run ()
 	else (
-		init_all ();
+		init_all db_file;
 		Server.run port;
 		fini_all ()
 	)
 
 let parse_cmdline () =
-	let test_mode = ref false in
+	let test_mode = ref false
+	and port = ref default_port
+	and db_file = ref default_db_file in
 	let args = ref [] in
 	let speclist = [
+		("--port", Arg.Int  (fun i -> port := i), ": set TCP listener port");
+		("--db",   Arg.Set_string db_file, ": set sqlite DB file");
 		("--test", Arg.Unit (fun () -> test_mode := true), ": test mode");
 	] in
 	let usage = "Usage unavailable" in
@@ -50,7 +54,7 @@ let parse_cmdline () =
 	let collect arg = args := !args @ [arg] in
 	let () = Arg.parse speclist collect usage in
 	let test_mode = !test_mode in
-		main ~test_mode
+		main ~test_mode !port !db_file
 		
 let () = 
 	parse_cmdline ()
