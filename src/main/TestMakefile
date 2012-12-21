@@ -1,0 +1,10 @@
+
+include common.mk
+
+SOURCES := $(COMMON_SOURCES) test_main.ml
+
+RESULT  = test_ap1
+
+-include OCamlMakefile
+
+all: bc
