@@ -17,12 +17,7 @@ let queue = ref Prioqueue.empty
 let post ~delay task =
 	let prio = Unix.gettimeofday () +. delay in
 		queue := Prioqueue.insert !queue prio task
-(*
-let pump_one () =
-	try	let task = Queue.pop queue in
-		task ()
-	with Queue.Empty -> ()
-*)
+
 let apply i = i ()
 
 let pump_till_current () =
@@ -36,24 +31,3 @@ let pump_till_current () =
 
 let top_priority () =
 	Prioqueue.top_priority !queue
-
-(*
-let rec pump_till_empty () =
-	pump_all ();
-	match Queue.is_empty queue with
-		| true -> ()
-		| false -> pump_till_empty ()
-
-let main () =
-	let f () =
-		print_endline "first"
-	in
-	let g () =
-		print_endline "next"
-	in
-		post f;
-		post g;
-		pump_till_empty ()
-
-let _ = main ()
-*)
