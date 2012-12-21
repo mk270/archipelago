@@ -290,43 +290,24 @@ let link_apertures () =
 						   Model.Props.set_aperture obj (Some ap)
 	) apertures
 
-let setup_directions () =
-	(* this should ultimately move to DB *)
-
-	let compass = [
-		("north", None, None, 0);
-		("east", None, None, 1);
-		("south", None, None, 2);
-		("west", None, None, 3);
-		("northeast", None, None, 4);
-		("southeast", None, None, 5);
-		("southwest", None, None, 6);
-		("northwest", None, None, 7);
-		("up", Some "above", Some "upwards", 8);
-		("down", Some "below", Some "downwards", 9);
-		("in", Some "inside", Some "inside", 10);
-		("out", Some "outside", Some "outside", 11);
-		("pit", Some "the direction of the pit", Some "towards the pit", 12);
-		("fore", Some "foreward", Some "fore", 13);
-		("aft", Some "aftward", Some "aft", 14);
-		("port", Some "the port side", Some "to the port side", 15);
-		("starboard", Some "the starboard side", Some "to the starboard side", 16);
-	] in
-	let f (dir_name, whence, whither, dir_number) =
-		let whence  = match whence with
-			| None -> "the " ^ dir_name
-			| Some s -> s
-		in
-		let whither = match whither with
-			| None -> dir_name
-			| Some s -> s
-		in 
-		ignore( Direction.create_direction 
-			~dir_name ~whence ~whither ~dir_number )
-	in
-		List.iter f (List.rev compass)
+let direction_row row header =
+	match row with
+		| [| Some id ; Some dir_name ; whence ; whither |] ->
+			let dir_number = int_of_string id in
+			let whence = match whence with
+				| None -> "the " ^ dir_name
+				| Some s -> s
+			in
+			let whither = match whither with
+				| None -> dir_name
+				| Some s -> s
+			in
+				ignore( Direction.create_direction 
+							~dir_name ~whence ~whither ~dir_number )
+		| _ -> assert false
 
 let table_info = [
+	( "SELECT id, name, whence, whither FROM direction ORDER BY id DESC", direction_row );
 	( "SELECT id, state, trapped, accessor FROM aperture", aperture_row );
 	( "SELECT id, desc FROM description", description_row );
 	( "SELECT id, flag FROM objflag", objflag_row );
@@ -356,7 +337,6 @@ let load_world_from_db () =
 		()
 
 let init () = 
-	setup_directions ();
     load_world_from_db ();
     ()
 
