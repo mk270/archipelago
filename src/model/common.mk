@@ -10,6 +10,7 @@ LIBS := unix str general
 
 COMMON_SOURCES := \
 	name.ml \
+	digraph.ml \
 	container.ml \
 	direction.ml \
 	sex.ml \
