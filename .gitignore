@@ -6,6 +6,5 @@
 ._d/*
 *.annot
 ._bcdi/*
-ocaml/ap1
-ocaml/main/ap1
+src/main/ap1
 *.cma
