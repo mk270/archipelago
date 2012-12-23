@@ -5,8 +5,8 @@ OCAMLLDFLAGS := -g
 ANNOTATE := yes
 INCDIRS := ../utils ../model
 
-PACKS := sqlite3 oUnit
-LIBS := unix str general mudmodel
+PACKS := sqlite3
+LIBS := mudmodel
 
 COMMON_SOURCES := \
 	world.ml \
