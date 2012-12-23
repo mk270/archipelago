@@ -5,7 +5,7 @@ OCAMLLDFLAGS := -g
 ANNOTATE := yes
 INCDIRS := ../utils
 
-PACKS := sqlite3 oUnit
+PACKS := 
 LIBS := unix str general
 
 COMMON_SOURCES := \

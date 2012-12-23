@@ -3,7 +3,7 @@ OCAMLFLAGS := -rectypes -g -w Aez -warn-error Aez
 OCAMLLDFLAGS := -rectypes -g
 ANNOTATE := yes
 
-LIBS := str
+LIBS :=
 
 SOURCES := utils.ml fsm.ml
 

@@ -6,7 +6,7 @@ ANNOTATE := yes
 INCDIRS := ../utils ../model ../server
 
 PACKS := sqlite3 oUnit
-LIBS := unix str general mudmodel mudserver
+LIBS := mudserver
 
 COMMON_SOURCES := \
 
