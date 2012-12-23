@@ -14,4 +14,5 @@ COMMON_SOURCES := \
 TEST_SOURCES := \
 	test_prioq.ml \
 	test_movement.ml \
+	test_container.ml \
 	test_all.ml 

@@ -40,7 +40,7 @@ let rec populate l acc =
 		| hd :: tl -> populate tl (Prioqueue.insert acc (fst hd) (snd hd) )
 
 let display_prio_elt prio elt =
-	Printf.printf "Prio: %3.3f\nElt: [%s]\n\n" prio elt
+	Printf.printf "Prio: %3.3f; Elt: [%s]\n\n" prio elt
 
 let exhaust_prioq pq =
 	Prioqueue.iter display_prio_elt pq
@@ -48,14 +48,11 @@ let exhaust_prioq pq =
 let exhaust_prioq_to_limit ~comparand pq =
 	Prioqueue.iter ~comparand display_prio_elt pq
 
-let test_exhaustion () =
-	let pq = populate data Prioqueue.empty
-	in
-		print_endline "---all---";
-		let pq = exhaust_prioq pq in
-			print_endline "---some---";
-			let pq = exhaust_prioq_to_limit ~comparand:123.45 pq in
-				ignore(pq)
+let test_exhaust_partially () =
+	let pq = populate data Prioqueue.empty in
+	let pq = exhaust_prioq_to_limit ~comparand:123.45 pq in
+	let prio, observed, pq = Prioqueue.extract pq in
+		assert_equal prio 300.0
 
 let test_triv2 () =
 	let pq = populate data Prioqueue.empty in
@@ -66,11 +63,11 @@ let test_triv2 () =
 let suite = 
 	"prioq_suite" >::: [
 		"test2" >:: test_triv2;
+		"test3" >:: test_exhaust_partially;
 	]
 	
 let run () =
 	run_test_tt_main suite
 
 let main () =
-	test_exhaustion ();
 	ignore(run ())

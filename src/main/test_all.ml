@@ -13,4 +13,5 @@
 
 let run () = 
 	Test_prioq.main ();
-	Test_movement.main ()
+	Test_movement.main ();
+	Test_container.main ()
