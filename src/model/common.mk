@@ -13,7 +13,9 @@ COMMON_SOURCES := \
 	digraph.ml \
 	container.ml \
 	node.ml \
+	connector.ml \
 	direction.ml \
+	objreference.ml \
 	sex.ml \
 	light.ml \
 	light_fsm.ml \
