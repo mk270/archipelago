@@ -12,6 +12,7 @@ COMMON_SOURCES := \
 	name.ml \
 	digraph.ml \
 	container.ml \
+	node.ml \
 	direction.ml \
 	sex.ml \
 	light.ml \
