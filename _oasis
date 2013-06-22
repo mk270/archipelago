@@ -3,6 +3,8 @@ Name:        archipelago
 Version:     0.1
 Synopsis:    A MUD Server
 Authors:     Martin Keegan
+# The licence is AGPL 3.0, *not* LGPL, which is only here to
+# get oasis to process this file
 License:     LGPL-2.1 with OCaml linking exception
 Plugins:     META (0.3)
 
