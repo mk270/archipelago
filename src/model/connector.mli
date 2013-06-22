@@ -11,6 +11,8 @@
 
 type connv = VTree | VDigraph
 
-type ('a, 'b) connector
+type 'a connector
 
-val create : ('a * connv) list -> 'b -> ('b, 'a) connector
+val create : 'b -> 'b connector
+
+val add_arc : Objreference.objreference -> 'a connector -> 'a connector -> unit
