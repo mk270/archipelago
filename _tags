@@ -1,0 +1,42 @@
+# OASIS_START
+# DO NOT EDIT (digest: a5048b9cfe94e2e20a552c031ddec11c)
+# Ignore VCS directories, you can use the same kind of rule outside 
+# OASIS_START/STOP if you want to exclude directories that contains 
+# useless stuff for the build process
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
+# Library utils
+"src/utils/utils.cmxs": use_utils
+<src/utils/*.ml{,i}>: pkg_str
+# Library model
+"src/model/model.cmxs": use_model
+<src/model/*.ml{,i}>: use_utils
+<src/model/*.ml{,i}>: pkg_str
+# Library server
+"src/server/server.cmxs": use_server
+<src/server/*.ml{,i}>: use_model
+<src/server/*.ml{,i}>: use_utils
+<src/server/*.ml{,i}>: pkg_sqlite3
+<src/server/*.ml{,i}>: pkg_str
+# Executable archipelago
+"src/main/main.byte": use_server
+"src/main/main.byte": use_model
+"src/main/main.byte": use_utils
+"src/main/main.byte": pkg_oUnit
+"src/main/main.byte": pkg_sqlite3
+"src/main/main.byte": pkg_str
+<src/main/*.ml{,i}>: use_server
+<src/main/*.ml{,i}>: use_model
+<src/main/*.ml{,i}>: use_utils
+<src/main/*.ml{,i}>: pkg_oUnit
+<src/main/*.ml{,i}>: pkg_sqlite3
+<src/main/*.ml{,i}>: pkg_str
+# OASIS_STOP

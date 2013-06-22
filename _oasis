@@ -1,0 +1,31 @@
+OASISFormat: 0.3
+Name:        archipelago
+Version:     0.1
+Synopsis:    A MUD Server
+Authors:     Martin Keegan
+License:     LGPL-2.1 with OCaml linking exception
+Plugins:     META (0.3)
+
+Library utils
+  Path:       src/utils
+  BuildTools: ocamlbuild
+  Modules:    Fsm, Utils
+  BuildDepends: str
+
+Library model
+  Path:       src/model
+  BuildTools: ocamlbuild
+  Modules:    Model
+  BuildDepends: utils
+
+Library server
+  Path:       src/server
+  BuildTools: ocamlbuild
+  Modules:    World
+  BuildDepends: sqlite3, utils, model
+
+Executable archipelago
+  Path:       src/main
+  BuildTools: ocamlbuild
+  MainIs:     main.ml
+  BuildDepends: oUnit, utils, model, server
