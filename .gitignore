@@ -8,3 +8,6 @@
 ._bcdi/*
 src/main/ap1
 *.cma
+_build/
+*.mllib
+META
