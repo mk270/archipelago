@@ -11,3 +11,5 @@ src/main/ap1
 _build/
 *.mllib
 META
+*.byte
+*.native
