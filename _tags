@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: a5048b9cfe94e2e20a552c031ddec11c)
+# DO NOT EDIT (digest: 628f2b7c213f6735f8c1fd3b64d76d97)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -25,6 +25,9 @@
 <src/server/*.ml{,i}>: use_model
 <src/server/*.ml{,i}>: use_utils
 <src/server/*.ml{,i}>: pkg_sqlite3
+<src/server/*.ml{,i}>: pkg_tcp_server
+<src/server/*.ml{,i}>: pkg_lwt
+<src/server/*.ml{,i}>: pkg_lwt.syntax
 <src/server/*.ml{,i}>: pkg_str
 # Executable archipelago
 "src/main/main.byte": use_server
@@ -32,11 +35,18 @@
 "src/main/main.byte": use_utils
 "src/main/main.byte": pkg_oUnit
 "src/main/main.byte": pkg_sqlite3
+"src/main/main.byte": pkg_tcp_server
+"src/main/main.byte": pkg_lwt
+"src/main/main.byte": pkg_lwt.syntax
 "src/main/main.byte": pkg_str
 <src/main/*.ml{,i}>: use_server
 <src/main/*.ml{,i}>: use_model
 <src/main/*.ml{,i}>: use_utils
 <src/main/*.ml{,i}>: pkg_oUnit
 <src/main/*.ml{,i}>: pkg_sqlite3
+<src/main/*.ml{,i}>: pkg_tcp_server
+<src/main/*.ml{,i}>: pkg_lwt
+<src/main/*.ml{,i}>: pkg_lwt.syntax
 <src/main/*.ml{,i}>: pkg_str
 # OASIS_STOP
+<src/server/*.ml{,i}>: syntax_camlp4o
