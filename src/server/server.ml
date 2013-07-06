@@ -43,9 +43,15 @@ let io_loop connection_id input output =
 	respond >|=
 	Tcp_server.enqueue_all
 
-let cb connection_id input output = 
-	Tcp_server.enqueue connection_id "Hello?\r\n";
-    while_lwt true do io_loop connection_id input output done
+let start_fn connection_id =
+	Tcp_server.enqueue connection_id "Hello?\r\n"
+
+let _cb connection_id input output init_fn read_fn =
+	init_fn connection_id;
+	while_lwt true do read_fn connection_id input output done
+
+let cb connection_id input output =
+	_cb connection_id input output start_fn io_loop
 
 let run port = 
 	let sa = Unix.ADDR_INET (Unix.inet_addr_any, port) in

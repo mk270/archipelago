@@ -50,3 +50,4 @@
 <src/main/*.ml{,i}>: pkg_str
 # OASIS_STOP
 <src/server/*.ml{,i}>: syntax_camlp4o
+<src/*/*.ml{,}>: annot
