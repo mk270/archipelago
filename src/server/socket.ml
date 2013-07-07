@@ -93,29 +93,6 @@ let pl_get_session sess =
 let exhaust_input s =
 	really_read s.sock_socket
 
-let get_state sess = sess.ss_state
-
-let set_state session new_state = 
-	( match session.ss_state with
-		  | LoggedIn player -> remove_session_link ~player
-		  | _ -> () );
-	( match new_state with
-		  | LoggedIn player -> add_session_link ~player ~session
-		  | _ -> () );
-	session.ss_state <- new_state
-
-let set_name sess n = sess.ss_name <- Some n
-let get_name sess = 
-	match sess.ss_name with
-		| Some n -> n
-		| None -> failwith "No name set"
-
-let set_password sess p = sess.ss_password <- Some p
-let get_password sess = 
-	match sess.ss_password with
-		| Some p -> p
-		| None -> failwith "No password set."
-
 let emitl player line =
 	try
 		let sess = session_from_player ~player in
@@ -199,6 +176,29 @@ let register_socket s sess =
 	  
 let deregister_socket s =
 	sockets := List.remove_assq s !sockets
+
+let get_state sess = sess.ss_state
+
+let set_state session new_state = 
+	( match session.ss_state with
+		  | LoggedIn player -> remove_session_link ~player
+		  | _ -> () );
+	( match new_state with
+		  | LoggedIn player -> add_session_link ~player ~session
+		  | _ -> () );
+	session.ss_state <- new_state
+
+let set_name sess n = sess.ss_name <- Some n
+let get_name sess = 
+	match sess.ss_name with
+		| Some n -> n
+		| None -> failwith "No name set"
+
+let set_password sess p = sess.ss_password <- Some p
+let get_password sess = 
+	match sess.ss_password with
+		| Some p -> p
+		| None -> failwith "No password set."
 
 let new_connection l =
 	let new_fd, addr = accept l.sock_socket in
