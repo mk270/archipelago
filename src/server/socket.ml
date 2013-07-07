@@ -148,12 +148,6 @@ let dummy_socket = {
   
 let create_connection fd =
 	{ dummy_socket with sock_socket = fd }
-
-let register_socket s sess =
-	sockets := (s, sess) :: !sockets
-	  
-let deregister_socket s =
-	sockets := List.remove_assq s !sockets
 			
 let create_listener p h =
 	let s = Unix.socket PF_INET SOCK_STREAM 0 in
@@ -199,6 +193,12 @@ let rdbuf_set s data =
   
 let rdbuf_get s =
 	Buffer.contents s.sock_read_buffer
+
+let register_socket s sess =
+	sockets := (s, sess) :: !sockets
+	  
+let deregister_socket s =
+	sockets := List.remove_assq s !sockets
 
 let new_connection l =
 	let new_fd, addr = accept l.sock_socket in
