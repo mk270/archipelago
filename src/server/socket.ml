@@ -12,18 +12,6 @@
 open Unix
 open Networking
 
-type connection_state =
-	| NewConnection
-	| UnAuthenticated
-	| GetPass
-	| ConfirmName of string
-	| GetSex
-	| NewPass1
-	| NewPass2
-	| LoggedIn of Model.mudobject
-	| LoggedOut
-	| Entering of string * int
-
 type socket = 
 		{ 
 			sock_port : int option ; 
@@ -125,6 +113,18 @@ let rdbuf_set s data =
   
 let rdbuf_get s =
 	Buffer.contents s.sock_read_buffer
+
+type connection_state =
+	| NewConnection
+	| UnAuthenticated
+	| GetPass
+	| ConfirmName of string
+	| GetSex
+	| NewPass1
+	| NewPass2
+	| LoggedIn of Model.mudobject
+	| LoggedOut
+	| Entering of string * int
 
 type session = 
 		{ 
