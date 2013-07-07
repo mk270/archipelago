@@ -41,14 +41,6 @@ and proto =
 			handle_read : socket -> unit ;
 		}
 
-type session = 
-		{ 
-			ss_socket : socket ;
-			mutable ss_state : connection_state ;
-			mutable ss_name : string option ;
-			mutable ss_password : string option ;
-		}  
-
 type socket_role = Listener of int * proto | Connection of file_descr
 
 let pump_write s =
@@ -133,6 +125,14 @@ let rdbuf_set s data =
   
 let rdbuf_get s =
 	Buffer.contents s.sock_read_buffer
+
+type session = 
+		{ 
+			ss_socket : socket ;
+			mutable ss_state : connection_state ;
+			mutable ss_name : string option ;
+			mutable ss_password : string option ;
+		}  
 
 let sockets = ref []
 let player_sessions = ref []
