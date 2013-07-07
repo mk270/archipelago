@@ -217,14 +217,17 @@ let init_session sess =
 		register_socket new_socket sess;
 		init new_socket
 
-let new_connection l =
+let accept_socket l =
 	let new_fd, addr = accept l.sock_socket in
-	let new_socket = { 
-		dummy_socket with 
-			sock_socket = new_fd ; 
-			sock_peer_addr = Some addr ; 
-			sock_protocol = l.sock_protocol;
-	} in
+		{ 
+			dummy_socket with 
+				sock_socket = new_fd ; 
+				sock_peer_addr = Some addr ; 
+				sock_protocol = l.sock_protocol;
+		} 
+
+let new_connection l =
+	let new_socket = accept_socket l in
 	let sess = new_session new_socket in
 		init_session sess;
 		Some new_socket
