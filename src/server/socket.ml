@@ -35,18 +35,19 @@ type socket =
 			sock_protocol : proto ;
 			sock_listener : bool ;
 		}
-and session = 
+and proto = 
+		{
+			handle_init : socket -> unit ;
+			handle_read : socket -> unit ;
+		}
+
+type session = 
 		{ 
 			socket : socket ;
 			mutable state : connection_state ;
 			mutable name : string option ;
 			mutable password : string option ;
 		}  
-and proto = 
-		{
-			handle_init : socket -> unit ;
-			handle_read : socket -> unit ;
-		}
 
 type socket_role = Listener of int * proto | Connection of file_descr
 

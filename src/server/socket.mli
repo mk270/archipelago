@@ -27,13 +27,13 @@ type connection_state =
 type 
   socket
 and
-  session
-and
   proto = 
     {
       handle_init : socket -> unit ;
       handle_read : socket -> unit ;
     }
+
+type session
 
 type socket_role = Listener of int * proto | Connection of file_descr
 
