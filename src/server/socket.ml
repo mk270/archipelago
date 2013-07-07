@@ -31,6 +31,8 @@ and proto =
 
 type socket_role = Listener of int * proto | Connection of file_descr
 
+let init_handler s = s.sock_protocol.handle_init
+
 let pump_write s =
 	let buf_size = String.length s.sock_write_buffer in
 	let written = really_write s.sock_socket s.sock_write_buffer in
@@ -210,7 +212,7 @@ let init_session sess =
 	let new_socket = sess.ss_socket in
 		set_nonblock new_socket.sock_socket;
 		register_socket new_socket sess;
-		new_socket.sock_protocol.handle_init new_socket
+		init_handler new_socket new_socket (* seems redundant *)
 
 let new_connection l =
 	let new_fd, addr = accept l.sock_socket in
