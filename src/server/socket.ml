@@ -206,6 +206,12 @@ let new_session s = {
 	ss_password = None;
 }
 
+let init_session sess =
+	let new_socket = sess.ss_socket in
+		set_nonblock new_socket.sock_socket;
+		register_socket new_socket sess;
+		new_socket.sock_protocol.handle_init new_socket
+
 let new_connection l =
 	let new_fd, addr = accept l.sock_socket in
 	let new_socket = { 
@@ -215,9 +221,7 @@ let new_connection l =
 			sock_protocol = l.sock_protocol;
 	} in
 	let sess = new_session new_socket in
-		set_nonblock new_socket.sock_socket;
-		register_socket new_socket sess;
-		new_socket.sock_protocol.handle_init new_socket;
+		init_session sess;
 		Some new_socket
 
 let handle_read s =
