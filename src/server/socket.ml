@@ -32,7 +32,6 @@ type socket =
 			mutable sock_closing : bool ;   
 			sock_read_buffer : Buffer.t ;
 			mutable sock_write_buffer : string ;
-			mutable sock_session : session option ;
 			sock_protocol : proto ;
 			sock_listener : bool ;
 		}
@@ -50,6 +49,8 @@ and proto =
 		}
 
 type socket_role = Listener of int * proto | Connection of file_descr
+
+let sockets = ref []
 
 let player_sessions = ref []
 
@@ -80,11 +81,8 @@ let sock_emit s data =
 let emit sess data =
 	sock_emit sess.socket data 
 
-
 let get_session s = 
-	match s.sock_session with
-      | None -> raise Not_found
-      | Some ss -> ss
+	List.assq s !sockets
 
 let pl_get_session sess =
 	match sess.state with
@@ -93,7 +91,6 @@ let pl_get_session sess =
 
 let exhaust_input s =
 	really_read s.sock_socket
-
 
 let get_state sess = sess.state
 
@@ -144,14 +141,19 @@ let dummy_socket = {
 	sock_closing = false ; 
 	sock_read_buffer = Buffer.create 80 ; 
 	sock_write_buffer = "" ; 
-	sock_session = None ;
 	sock_protocol = dummy_protocol ;
 	sock_listener = false ;
 }
   
 let create_connection fd =
 	{ dummy_socket with sock_socket = fd }
+
+let register_socket s sess =
+	sockets := (s, sess) :: !sockets
 	  
+let deregister_socket s =
+	sockets := List.remove_assq s !sockets
+
 let new_connection l =
 	let new_fd, addr = accept l.sock_socket in
 	let new_socket = { 
@@ -167,7 +169,7 @@ let new_connection l =
 		password = None ;
 	} in
 		set_nonblock new_socket.sock_socket;
-		new_socket.sock_session <- Some sess;
+		register_socket new_socket sess;
 		new_socket.sock_protocol.handle_init new_socket;
 		Some new_socket
 			
@@ -209,6 +211,7 @@ let close s =
 	s.sock_closing <- true
 
 let end_session sess =
+	deregister_socket sess.socket;
 	close sess.socket
 
 let rdbuf_append s data =
