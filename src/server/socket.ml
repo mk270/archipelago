@@ -51,8 +51,6 @@ type session =
 
 type socket_role = Listener of int * proto | Connection of file_descr
 
-let sockets = ref []
-
 let pump_write s =
 	let buf_size = String.length s.sock_write_buffer in
 	let written = really_write s.sock_socket s.sock_write_buffer in
@@ -136,6 +134,7 @@ let rdbuf_set s data =
 let rdbuf_get s =
 	Buffer.contents s.sock_read_buffer
 
+let sockets = ref []
 let player_sessions = ref []
 
 let register_socket s sess =
