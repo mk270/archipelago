@@ -112,11 +112,6 @@ let new_connection l =
 		init_session sess;
 		Some new_socket
 
-let handle_read s =
-	match Socket.is_listener s with
-		| true -> new_connection s (* return new socket to multiplexer *)
-		| false -> Socket.read s s; None
-
 let end_session sess =
 	deregister_socket sess.ss_socket;
 	Socket.close sess.ss_socket

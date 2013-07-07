@@ -41,4 +41,5 @@ val emitl : mudobject -> string -> unit
 
 val current_players : unit -> mudobject list
 val current_players_and_sessions : unit -> (Model.mudobject * session) list
-val handle_read : Socket.socket -> Socket.socket option
+
+val new_connection : Socket.socket -> Socket.socket option
