@@ -44,9 +44,9 @@ and proto =
 type session = 
 		{ 
 			ss_socket : socket ;
-			mutable state : connection_state ;
-			mutable name : string option ;
-			mutable password : string option ;
+			mutable ss_state : connection_state ;
+			mutable ss_name : string option ;
+			mutable ss_password : string option ;
 		}  
 
 type socket_role = Listener of int * proto | Connection of file_descr
@@ -86,33 +86,33 @@ let get_session s =
 	List.assq s !sockets
 
 let pl_get_session sess =
-	match sess.state with
+	match sess.ss_state with
 		| LoggedIn p -> p
 		| _ -> raise Not_found
 
 let exhaust_input s =
 	really_read s.sock_socket
 
-let get_state sess = sess.state
+let get_state sess = sess.ss_state
 
 let set_state session new_state = 
-	( match session.state with
+	( match session.ss_state with
 		  | LoggedIn player -> remove_session_link ~player
 		  | _ -> () );
 	( match new_state with
 		  | LoggedIn player -> add_session_link ~player ~session
 		  | _ -> () );
-	session.state <- new_state
+	session.ss_state <- new_state
 
-let set_name sess n = sess.name <- Some n
+let set_name sess n = sess.ss_name <- Some n
 let get_name sess = 
-	match sess.name with
+	match sess.ss_name with
 		| Some n -> n
 		| None -> failwith "No name set"
 
-let set_password sess p = sess.password <- Some p
+let set_password sess p = sess.ss_password <- Some p
 let get_password sess = 
-	match sess.password with
+	match sess.ss_password with
 		| Some p -> p
 		| None -> failwith "No password set."
 
@@ -165,9 +165,9 @@ let new_connection l =
 	} in
 	let sess = { 
 		ss_socket = new_socket ; 
-		state = NewConnection ;
-		name = None ;
-		password = None ;
+		ss_state = NewConnection ;
+		ss_name = None ;
+		ss_password = None ;
 	} in
 		set_nonblock new_socket.sock_socket;
 		register_socket new_socket sess;
