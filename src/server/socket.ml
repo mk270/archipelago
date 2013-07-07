@@ -211,10 +211,6 @@ let close s =
 	Unix.close s.sock_socket;
 	s.sock_closing <- true
 
-let end_session sess =
-	deregister_socket sess.ss_socket;
-	close sess.ss_socket
-
 let rdbuf_append s data =
 	Buffer.add_string s.sock_read_buffer data
 
@@ -227,3 +223,7 @@ let rdbuf_set s data =
   
 let rdbuf_get s =
 	Buffer.contents s.sock_read_buffer
+
+let end_session sess =
+	deregister_socket sess.ss_socket;
+	close sess.ss_socket
