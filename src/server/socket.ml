@@ -199,6 +199,13 @@ let get_password sess =
 		| Some p -> p
 		| None -> failwith "No password set."
 
+let new_session s = {
+	ss_socket = s;
+	ss_state = NewConnection;
+	ss_name = None;
+	ss_password = None;
+}
+
 let new_connection l =
 	let new_fd, addr = accept l.sock_socket in
 	let new_socket = { 
@@ -207,12 +214,7 @@ let new_connection l =
 			sock_peer_addr = Some addr ; 
 			sock_protocol = l.sock_protocol;
 	} in
-	let sess = { 
-		ss_socket = new_socket ; 
-		ss_state = NewConnection ;
-		ss_name = None ;
-		ss_password = None ;
-	} in
+	let sess = new_session new_socket in
 		set_nonblock new_socket.sock_socket;
 		register_socket new_socket sess;
 		new_socket.sock_protocol.handle_init new_socket;
