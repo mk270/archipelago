@@ -79,17 +79,6 @@ let sock_emit s data =
 	s.sock_write_buffer <- s.sock_write_buffer ^ data;
 	pump_write s
 
-let emit sess data =
-	sock_emit sess.ss_socket data 
-
-let get_session s = 
-	List.assq s !sockets
-
-let pl_get_session sess =
-	match sess.ss_state with
-		| LoggedIn p -> p
-		| _ -> raise Not_found
-
 let exhaust_input s =
 	really_read s.sock_socket
 
@@ -169,6 +158,17 @@ let register_socket s sess =
 	  
 let deregister_socket s =
 	sockets := List.remove_assq s !sockets
+
+let emit sess data =
+	sock_emit sess.ss_socket data 
+
+let get_session s = 
+	List.assq s !sockets
+
+let pl_get_session sess =
+	match sess.ss_state with
+		| LoggedIn p -> p
+		| _ -> raise Not_found
 
 let emitl player line =
 	try
