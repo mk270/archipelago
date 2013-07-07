@@ -43,7 +43,7 @@ and proto =
 
 type session = 
 		{ 
-			socket : socket ;
+			ss_socket : socket ;
 			mutable state : connection_state ;
 			mutable name : string option ;
 			mutable password : string option ;
@@ -80,7 +80,7 @@ let sock_emit s data =
 	pump_write s
 
 let emit sess data =
-	sock_emit sess.socket data 
+	sock_emit sess.ss_socket data 
 
 let get_session s = 
 	List.assq s !sockets
@@ -164,7 +164,7 @@ let new_connection l =
 			sock_protocol = l.sock_protocol;
 	} in
 	let sess = { 
-		socket = new_socket ; 
+		ss_socket = new_socket ; 
 		state = NewConnection ;
 		name = None ;
 		password = None ;
@@ -212,8 +212,8 @@ let close s =
 	s.sock_closing <- true
 
 let end_session sess =
-	deregister_socket sess.socket;
-	close sess.socket
+	deregister_socket sess.ss_socket;
+	close sess.ss_socket
 
 let rdbuf_append s data =
 	Buffer.add_string s.sock_read_buffer data
