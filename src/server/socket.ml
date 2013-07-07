@@ -210,8 +210,8 @@ let new_session s = {
 
 let init_session sess =
 	let new_socket = sess.ss_socket in
-		set_nonblock new_socket.sock_socket;
 		register_socket new_socket sess;
+		set_nonblock new_socket.sock_socket;
 		init_handler new_socket new_socket (* seems redundant *)
 
 let new_connection l =
