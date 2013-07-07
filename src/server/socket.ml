@@ -154,25 +154,6 @@ let register_socket s sess =
 	  
 let deregister_socket s =
 	sockets := List.remove_assq s !sockets
-
-let new_connection l =
-	let new_fd, addr = accept l.sock_socket in
-	let new_socket = { 
-		dummy_socket with 
-			sock_socket = new_fd ; 
-			sock_peer_addr = Some addr ; 
-			sock_protocol = l.sock_protocol;
-	} in
-	let sess = { 
-		ss_socket = new_socket ; 
-		ss_state = NewConnection ;
-		ss_name = None ;
-		ss_password = None ;
-	} in
-		set_nonblock new_socket.sock_socket;
-		register_socket new_socket sess;
-		new_socket.sock_protocol.handle_init new_socket;
-		Some new_socket
 			
 let create_listener p h =
 	let s = Unix.socket PF_INET SOCK_STREAM 0 in
@@ -199,11 +180,6 @@ let create role =
 let fd s =
 	s.sock_socket
 
-let handle_read s =
-	match s.sock_listener with
-		| true -> new_connection s (* return new socket to multiplexer *)
-		| false -> s.sock_protocol.handle_read s ; None
-
 let is_closing s =
 	s.sock_closing
 
@@ -223,6 +199,30 @@ let rdbuf_set s data =
   
 let rdbuf_get s =
 	Buffer.contents s.sock_read_buffer
+
+let new_connection l =
+	let new_fd, addr = accept l.sock_socket in
+	let new_socket = { 
+		dummy_socket with 
+			sock_socket = new_fd ; 
+			sock_peer_addr = Some addr ; 
+			sock_protocol = l.sock_protocol;
+	} in
+	let sess = { 
+		ss_socket = new_socket ; 
+		ss_state = NewConnection ;
+		ss_name = None ;
+		ss_password = None ;
+	} in
+		set_nonblock new_socket.sock_socket;
+		register_socket new_socket sess;
+		new_socket.sock_protocol.handle_init new_socket;
+		Some new_socket
+
+let handle_read s =
+	match s.sock_listener with
+		| true -> new_connection s (* return new socket to multiplexer *)
+		| false -> s.sock_protocol.handle_read s ; None
 
 let end_session sess =
 	deregister_socket sess.ss_socket;
