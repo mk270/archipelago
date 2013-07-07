@@ -71,6 +71,15 @@ let dummy_socket = {
 	sock_protocol = dummy_protocol ;
 	sock_listener = false ;
 }
+
+let accept_socket l =
+	let new_fd, addr = accept l.sock_socket in
+		{ 
+			dummy_socket with 
+				sock_socket = new_fd ; 
+				sock_peer_addr = Some addr ; 
+				sock_protocol = l.sock_protocol;
+		} 
   
 let create_connection fd =
 	{ dummy_socket with sock_socket = fd }
@@ -216,15 +225,6 @@ let init_session sess =
 	let new_socket = sess.ss_socket in
 		register_socket new_socket sess;
 		init new_socket
-
-let accept_socket l =
-	let new_fd, addr = accept l.sock_socket in
-		{ 
-			dummy_socket with 
-				sock_socket = new_fd ; 
-				sock_peer_addr = Some addr ; 
-				sock_protocol = l.sock_protocol;
-		} 
 
 let new_connection l =
 	let new_socket = accept_socket l in
