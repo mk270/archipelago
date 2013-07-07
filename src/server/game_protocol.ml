@@ -10,7 +10,7 @@
 *)
 
 
-open Socket
+open Session
 open Name
 
 (*
@@ -188,8 +188,8 @@ let hangup s =
 			| _ -> transition_state session LoggedOut
 
 type game_proto_msg =
-	| NewLine of socket * string
-	| Hangup of socket
+	| NewLine of Socket.socket * string
+	| Hangup of Socket.socket
 	| Logout of session * Model.mudobject
 
 let dispatch = function

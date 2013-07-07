@@ -39,7 +39,7 @@ let check_logout () =
 	List.iter (fun (pl, sess) ->
 		if Model.Props.get_logout pl 
 		then Game_protocol.dispatch (Logout (sess, pl))
-	) (current_players_and_sessions ())
+	) (Session.current_players_and_sessions ())
 	
 let new_input s =
 	let data = exhaust_input s
@@ -61,8 +61,8 @@ let hangup s =
 *)
 
 let init s =
-	let sess = get_session s in
-		transition_state sess NewConnection
+	let sess = Session.get_session s in
+		transition_state sess Session.NewConnection
 
 let line_protocol =
 	{

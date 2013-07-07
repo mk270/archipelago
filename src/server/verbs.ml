@@ -10,7 +10,7 @@
 *)
 
 open Utils
-open Socket
+open Session
 open Model
 open Printf
 open Direction
@@ -474,7 +474,7 @@ let set_trap ~actor ~patient =
 		emitl actor "Something went badly wrong"
 	
 let list_players ~actor =
-	let players = Socket.current_players () in
+	let players = Session.current_players () in
 		List.iter (fun p -> emitl actor (Model.Props.get_unvague_name p)) players
 
 let list_people ~actor =

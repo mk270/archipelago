@@ -12,6 +12,6 @@
 open Socket
 
 val line_protocol : proto
-val transition_state : session -> connection_state -> unit
+val transition_state : Session.session -> Session.connection_state -> unit
 (* val dispatch : protocol : proto -> socket -> unit *)
 val check_logout : unit -> unit

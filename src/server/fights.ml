@@ -31,7 +31,7 @@ let handle_timed_out_fight_rounds () =
 		Model.Fight.set_next_deadline combat;
 		Model.Fight.handle_msg ~msg:Combat_state.Timeout player
 	in
-	let players = Socket.current_players () in
+	let players = Session.current_players () in
 	let players_in_fights = List.filter Model.Fight.is_fighting players in
 	let players_and_combats = List.map 
 		(fun player -> (

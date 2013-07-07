@@ -220,14 +220,14 @@ let exec verb ~actor line =
 let guard_exceptions ~actor e =
 	let msg = "An error occurred: " ^ (Printexc.to_string e) in
 	let bt = Printexc.get_backtrace () in
-		emitl actor msg;
+		Session.emitl actor msg;
 		print_endline bt;
 		print_endline msg;
 		flush_all ()
 
 let guard_exceptions ~actor = function
 	| Persona.Spell_failed (Persona.Spell_not_available) ->
-		Socket.emitl actor "You don't know that spell."
+		Session.emitl actor "You don't know that spell."
 	| Persona.Spell_failed (Persona.Restricted r) -> 
-		Socket.emitl actor "Restricted"
+		Session.emitl actor "Restricted"
 	| e -> guard_exceptions ~actor e

@@ -20,10 +20,10 @@ open Verb_list
 let verbs = Hashtbl.create 50
 
 let help ~actor =
-	Socket.emitl actor "There is not much help available at the moment.";
-	Socket.emitl actor "";
-	Socket.emitl actor "Available verbs:";
-	Hashtbl.iter (fun k v -> Socket.emitl actor v.v_name) verbs
+	Session.emitl actor "There is not much help available at the moment.";
+	Session.emitl actor "";
+	Session.emitl actor "Available verbs:";
+	Hashtbl.iter (fun k v -> Session.emitl actor v.v_name) verbs
 
 
 let verb_tbl = ref []

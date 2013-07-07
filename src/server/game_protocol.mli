@@ -13,7 +13,7 @@
 type game_proto_msg =
 	| NewLine of Socket.socket * string
 	| Hangup of Socket.socket
-	| Logout of Socket.session * Model.mudobject
+	| Logout of Session.session * Model.mudobject
 
 val dispatch : game_proto_msg -> unit
-val transition_state : Socket.session -> Socket.connection_state -> unit
+val transition_state : Session.session -> Session.connection_state -> unit
