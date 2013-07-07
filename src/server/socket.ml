@@ -93,13 +93,6 @@ let pl_get_session sess =
 let exhaust_input s =
 	really_read s.sock_socket
 
-let emitl player line =
-	try
-		let sess = session_from_player ~player in
-			emit sess (line ^ "\r\n")
-	with Not_found -> () (* e.g., tried to talk to a monster *)
-		(* FIXME: we should probably catch/suppress these *)
-
 let dummy_file_descr = 
 	let tmp = Unix.openfile "/dev/null" [Unix.O_RDWR] 0o666 in
 		Unix.close tmp;
@@ -176,6 +169,13 @@ let register_socket s sess =
 	  
 let deregister_socket s =
 	sockets := List.remove_assq s !sockets
+
+let emitl player line =
+	try
+		let sess = session_from_player ~player in
+			emit sess (line ^ "\r\n")
+	with Not_found -> () (* e.g., tried to talk to a monster *)
+		(* FIXME: we should probably catch/suppress these *)
 
 let get_state sess = sess.ss_state
 
