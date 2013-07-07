@@ -55,21 +55,6 @@ let sockets = ref []
 
 let player_sessions = ref []
 
-let remove_session_link ~player =
-	player_sessions := List.remove_assq player !player_sessions
-
-let add_session_link ~player ~session = 
-	assert (not (List.mem_assq player !player_sessions));
-	
-	player_sessions := (player, session) :: !player_sessions
-
-let current_players () = List.map fst !player_sessions
-
-let current_players_and_sessions () = !player_sessions
-
-let session_from_player ~player = 
-	List.assq player !player_sessions
-
 let pump_write s =
 	let buf_size = String.length s.sock_write_buffer in
 	let written = really_write s.sock_socket s.sock_write_buffer in
@@ -158,6 +143,21 @@ let register_socket s sess =
 	  
 let deregister_socket s =
 	sockets := List.remove_assq s !sockets
+
+let remove_session_link ~player =
+	player_sessions := List.remove_assq player !player_sessions
+
+let add_session_link ~player ~session = 
+	assert (not (List.mem_assq player !player_sessions));
+	
+	player_sessions := (player, session) :: !player_sessions
+
+let current_players () = List.map fst !player_sessions
+
+let current_players_and_sessions () = !player_sessions
+
+let session_from_player ~player = 
+	List.assq player !player_sessions
 
 let emit sess data =
 	sock_emit sess.ss_socket data 
