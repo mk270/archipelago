@@ -13,7 +13,7 @@ open Tcp_server
 open Lwt
 
 open Socket
-(*
+
 let callbacks = [
 	Connection.check_logout;
 	Monster.pump_events;
@@ -29,8 +29,8 @@ let run port =
 		Multiplexer.add_socket m l;
 		List.iter register callbacks;
 		Multiplexer.run m
-*)
-let io_loop connection_id input output =
+
+(*let io_loop connection_id input output =
 	let respond = function
 		| "help" -> [(connection_id, "no help available\r\n")]
 		| "shout" ->
@@ -57,3 +57,4 @@ let run port =
 	let sa = Unix.ADDR_INET (Unix.inet_addr_any, port) in
 	let serv = Tcp_server.create sa cb in
 		Lwt_main.run serv
+*)
