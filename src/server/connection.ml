@@ -9,8 +9,6 @@
   (at your option) any later version.
 *)
 
-
-open Game_protocol
 open Socket
 
 let delim_crlf = Str.regexp "\r\n"
@@ -22,7 +20,7 @@ let handle_lines s =
 			| [] -> Socket.rdbuf_clear s
 			| [last] -> Socket.rdbuf_set s last
 			| hd :: tl -> 
-				  Game_protocol.dispatch (NewLine (s, hd));
+				  Game_protocol.dispatch (Game_protocol.NewLine (s, hd));
 				  get_lines tl
 	in
 		get_lines lines
@@ -33,12 +31,12 @@ let handle_data s data =
 
 let handle_peer_hangup s =
 	print_endline "socket hangup detected."; flush_all ();
-	Game_protocol.dispatch (Hangup s)
+	Game_protocol.dispatch (Game_protocol.Hangup s)
 
 let check_logout () =
 	List.iter (fun (pl, sess) ->
 		if Model.Props.get_logout pl 
-		then Game_protocol.dispatch (Logout (sess, pl))
+		then Game_protocol.dispatch (Game_protocol.Logout (sess, pl))
 	) (Session.current_players_and_sessions ())
 	
 let new_input s =
