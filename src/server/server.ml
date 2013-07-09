@@ -12,8 +12,6 @@
 open Tcp_server
 open Lwt
 
-open Socket
-
 let callbacks = [
 	Connection.check_logout;
 	Monster.pump_events;
@@ -23,7 +21,7 @@ let callbacks = [
 
 let run port =
 	let h = Connection.line_protocol in
-	let l = Socket.create (Listener (port, h)) in
+	let l = Socket.create (Socket.Listener (port, h)) in
 	let m = Multiplexer.create () in
 	let register cb = Multiplexer.add_timeout_callback m (fun () -> cb ()) in
 		Multiplexer.add_socket m l;
