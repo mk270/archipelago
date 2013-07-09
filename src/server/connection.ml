@@ -9,8 +9,6 @@
   (at your option) any later version.
 *)
 
-open Socket
-
 let delim_crlf = Str.regexp "\r\n"
 
 let handle_lines s =
@@ -40,7 +38,7 @@ let check_logout () =
 	) (Session.current_players_and_sessions ())
 	
 let new_input s =
-	let data = exhaust_input s
+	let data = Socket.exhaust_input s
 	in
 		(
 			if String.length data = 0
@@ -64,6 +62,6 @@ let init s =
 
 let line_protocol =
 	{
-		handle_init = init ;
-		handle_read = new_input ;
+		Socket.handle_init = init ;
+		Socket.handle_read = new_input ;
 	}
