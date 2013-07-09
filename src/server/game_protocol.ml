@@ -9,8 +9,6 @@
   (at your option) any later version.
 *)
 
-
-open Session
 open Name
 
 (*
@@ -25,7 +23,7 @@ let onechar s =
 		s.[0] = 'Y'
 
 let disconnect sess =
-	end_session sess
+	Session.end_session sess
 
 let censor_password = "\xffPSW\r\n"
 
@@ -36,43 +34,43 @@ let enter_message = function
 	| _ -> failwith "missing enter msg"
 
 let state_greeting_msg = function
-	| UnAuthenticated -> Some "Please enter your name.\r\n";
-	| GetPass -> Some ("Please enter your password.\r\n" ^ censor_password)
-	| GetSex -> Some "Please enter your sex (M/F).\r\n"
-	| NewPass1 -> Some ("Please enter a password.\r\n" ^ censor_password)
-	| NewPass2 -> Some ("Please re-enter this password.\r\n" ^ censor_password)
-	| LoggedIn _ -> Some "Welcome!\r\n\r\n"
-	| NewConnection -> Some "MOTD goes here.\r\n"
-	| ConfirmName name -> Some ("Did I get the name right, " ^ 
+	| Session.UnAuthenticated -> Some "Please enter your name.\r\n";
+	| Session.GetPass -> Some ("Please enter your password.\r\n" ^ censor_password)
+	| Session.GetSex -> Some "Please enter your sex (M/F).\r\n"
+	| Session.NewPass1 -> Some ("Please enter a password.\r\n" ^ censor_password)
+	| Session.NewPass2 -> Some ("Please re-enter this password.\r\n" ^ censor_password)
+	| Session.LoggedIn _ -> Some "Welcome!\r\n\r\n"
+	| Session.NewConnection -> Some "MOTD goes here.\r\n"
+	| Session.ConfirmName name -> Some ("Did I get the name right, " ^ 
 									   (name)^ "?\r\n")
-	| Entering (_, i) ->
+	| Session.Entering (_, i) ->
 		let delay = (delay_base +. Random.float delay_random) in
 		let d = Delay.do_delay_crlf ~delay in
 			Some ((enter_message i) ^ d)
-	| LoggedOut -> None
+	| Session.LoggedOut -> None
 
 let exit_state_message = function
-	| ConfirmName _ -> Some "Ok, well try again ...\r\n"
+	| Session.ConfirmName _ -> Some "Ok, well try again ...\r\n"
 	| _ -> None
 
 let rec transition_state sess state = 
-	let old_state = get_state sess in
+	let old_state = Session.get_state sess in
 		(match exit_state_message old_state with
 			| None -> ()
-			| Some msg -> emit sess msg);
-		set_state sess state;
+			| Some msg -> Session.emit sess msg);
+		Session.set_state sess state;
 		(match state_greeting_msg state with
 			| None -> ()
-			| Some msg -> emit sess msg);
+			| Some msg -> Session.emit sess msg);
 		enter_state sess state
 
 and enter_state sess state =
 	match state with
-		| NewConnection -> 
-			transition_state sess UnAuthenticated
-		| LoggedOut -> 
+		| Session.NewConnection -> 
+			transition_state sess Session.UnAuthenticated
+		| Session.LoggedOut -> 
 			disconnect sess
-		| LoggedIn actor ->
+		| Session.LoggedIn actor ->
 			Model.Tree.insert_into ~recipient:(World.get_start_room ()) actor;
 			Verbs.look ~actor;
 			Model.post_event (Model.Logon actor)
@@ -80,17 +78,17 @@ and enter_state sess state =
 
 and login sess name =
 	let p = Model.Create.create_player (name, NoAdam, Singular) in
-		transition_state sess (LoggedIn p)
+		transition_state sess (Session.LoggedIn p)
 
 
 let enter sess name =
-	transition_state sess (Entering (name, 2))
+	transition_state sess (Session.Entering (name, 2))
 
 let logout sess p =
 	(*	Model.Tree.remove_from (Model.Tree.parent p) p; *)
 	Model.destroy p;
 	Model.post_event (Model.Logout p);
-	transition_state sess LoggedOut
+	transition_state sess Session.LoggedOut
 
 let handle_login sess line =
 	if Passwd.sensible_name line 
@@ -98,36 +96,36 @@ let handle_login sess line =
 		(*		if not (Passwd.name_too_similar ~name:line)
 				then ( *)
 		let n = Passwd.normalise_name line in
-			set_name sess n;
+			Session.set_name sess n;
 			if Passwd.player_name_known n
-			then transition_state sess GetPass
-			else transition_state sess (ConfirmName n)
+			then transition_state sess Session.GetPass
+			else transition_state sess (Session.ConfirmName n)
 	(*		  else emit sess "That name is too similar to someone else's.\r\n" *)
 	)
 		  else
-			emit sess "That's not a sensible name.\r\n"
+			Session.emit sess "That's not a sensible name.\r\n"
 
 let get_new_password sess p =
 	if Passwd.sensible_password p 
-	then (set_password sess p;
-		  transition_state sess NewPass2)
-	else emit sess "That's not a sensible password.\r\n"
+	then (Session.set_password sess p;
+		  transition_state sess Session.NewPass2)
+	else Session.emit sess "That's not a sensible password.\r\n"
 
 let confirm_new_password sess p =
-	if get_password sess = p 
-	then enter sess (get_name sess)
+	if Session.get_password sess = p 
+	then enter sess (Session.get_name sess)
 	else
-		( emit sess "Passwords don't match.\r\n";
-		  transition_state sess NewPass1 )
+		( Session.emit sess "Passwords don't match.\r\n";
+		  transition_state sess Session.NewPass1 )
 
 let get_password sess p =
-	let name = get_name sess in
+	let name = Session.get_name sess in
 		if Passwd.password_matches name p 
 		then (* login sess name *)
 			enter sess name
 		else
-			(emit sess "Wrong password!\r\n";
-			 transition_state sess UnAuthenticated)
+			(Session.emit sess "Wrong password!\r\n";
+			 transition_state sess Session.UnAuthenticated)
 
 let player_new_line p line =
 	Commands.parse_line p line
@@ -135,62 +133,62 @@ let player_new_line p line =
 let get_sex sess line =
 	try let sex = Sex.sex_of_string line in
 			ignore(sex);
-			transition_state sess NewPass1
+			transition_state sess Session.NewPass1
 	with _ ->
-		transition_state sess GetSex
+		transition_state sess Session.GetSex
 
 let handle_line sess line = function
-	| LoggedIn p -> player_new_line p line
-	| UnAuthenticated -> handle_login sess line
-	| GetPass -> get_password sess line
-	| ConfirmName _ -> 
+	| Session.LoggedIn p -> player_new_line p line
+	| Session.UnAuthenticated -> handle_login sess line
+	| Session.GetPass -> get_password sess line
+	| Session.ConfirmName _ -> 
 		if (onechar line) 
-		then transition_state sess GetSex
-		else transition_state sess UnAuthenticated
-	| GetSex -> get_sex sess line
-	| NewPass1 -> get_new_password sess line
-	| NewPass2 -> confirm_new_password sess line
-	| LoggedOut -> disconnect sess
-	| NewConnection -> emit sess "aaargh\r\n"
-	| Entering (name, i) -> 
+		then transition_state sess Session.GetSex
+		else transition_state sess Session.UnAuthenticated
+	| Session.GetSex -> get_sex sess line
+	| Session.NewPass1 -> get_new_password sess line
+	| Session.NewPass2 -> confirm_new_password sess line
+	| Session.LoggedOut -> disconnect sess
+	| Session.NewConnection -> Session.emit sess "aaargh\r\n"
+	| Session.Entering (name, i) -> 
 		(if i > 0
-		 then transition_state sess (Entering (name, i - 1))
+		 then transition_state sess (Session.Entering (name, i - 1))
 		 else login sess name)
 
 let handle_blank_line sess = function
-	| UnAuthenticated -> emit sess "Hello? Who is that?\r\n"
-	| GetPass -> emit sess "Empty password?\r\n"
-	| NewPass1 -> emit sess "Blank passwords not allowed!\r\n"
-	| LoggedIn p -> player_new_line p ""
-	| ConfirmName _ -> transition_state sess UnAuthenticated
-	| NewConnection
-	| GetSex
-	| LoggedOut
-	| NewPass2 -> emit sess "What?\r\n"
-	| Entering (name, i) -> 
+	| Session.UnAuthenticated -> Session.emit sess "Hello? Who is that?\r\n"
+	| Session.GetPass -> Session.emit sess "Empty password?\r\n"
+	| Session.NewPass1 -> Session.emit sess "Blank passwords not allowed!\r\n"
+	| Session.LoggedIn p -> player_new_line p ""
+	| Session.ConfirmName _ -> transition_state sess Session.UnAuthenticated
+	| Session.NewConnection
+	| Session.GetSex
+	| Session.LoggedOut
+	| Session.NewPass2 -> Session.emit sess "What?\r\n"
+	| Session.Entering (name, i) -> 
 		(if i > 0
-		 then transition_state sess (Entering (name, i - 1))
+		 then transition_state sess (Session.Entering (name, i - 1))
 		 else login sess name)
 
 let new_line s line =
-	let sess = get_session s in
-	let st = get_state sess in
+	let sess = Session.get_session s in
+	let st = Session.get_state sess in
 		if String.length line = 0
 		then handle_blank_line sess st
 		else handle_line sess line st
 
 let hangup s = 
 	(* we need to check if the player is logged in, and if so, do logout *)
-	let session = get_session s in
-	let state = get_state session in
+	let session = Session.get_session s in
+	let state = Session.get_state session in
 		match state with
-			| LoggedIn p -> logout session p
-			| _ -> transition_state session LoggedOut
+			| Session.LoggedIn p -> logout session p
+			| _ -> transition_state session Session.LoggedOut
 
 type game_proto_msg =
 	| NewLine of Socket.socket * string
 	| Hangup of Socket.socket
-	| Logout of session * Model.mudobject
+	| Logout of Session.session * Model.mudobject
 
 let dispatch = function
 	| NewLine (sock, s) -> new_line sock s
