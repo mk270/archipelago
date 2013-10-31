@@ -89,6 +89,8 @@ let run_callback thunk =
 	try thunk ()
 	with e -> Utils.guard_exception e
 
+let drain_game_output =	Socket.emitl
+
 let pump m =
 	let handle_read' = handle_read m
 	in
@@ -100,6 +102,7 @@ let pump m =
 		List.iter handle_read' (poll_readable m);
 		Workqueue.pump_till_current ();
 		List.iter run_callback m.callbacks;
+		Game.output_iter drain_game_output;
 		(* FIXME *)
 		(* need to go through sockets with non-zero write_buffers and
 		   give them a push - if they're in this state, it means that

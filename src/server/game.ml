@@ -9,5 +9,18 @@
   (at your option) any later version.
 *)
 
-let emitl = Socket.emitl
+let emission_queue = Queue.create ()
+let tmp_queue = Queue.create ()
+
+(* let emitl mo msg = Socket.emitl mo msg *)
+
+let emitl mo msg =
+	Queue.add (mo, msg) emission_queue
+
 let current_players = Socket.current_players
+
+let output_iter f =
+	let f' (mo, msg) = f mo msg in
+		Queue.clear tmp_queue;
+		Queue.transfer emission_queue tmp_queue;
+		Queue.iter f' tmp_queue
