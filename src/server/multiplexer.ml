@@ -89,7 +89,7 @@ let run_callback thunk =
 	try thunk ()
 	with e -> Utils.guard_exception e
 
-let drain_game_output =	Socket.emitl
+let drain_game_output =	emitl
 
 let pump m =
 	let handle_read' = handle_read m
