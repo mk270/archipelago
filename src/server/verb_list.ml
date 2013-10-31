@@ -92,12 +92,12 @@ let vv = [
 	  v_frame = Unary cheat;
 	  v_args = [];			
 	};
-	
+	(*
 	{ v_name = "whentick" ;
 	  v_frame = Unary when_next;
 	  v_args = [];			
 	};
-	
+	*)
 	{ v_name = "probe" ;
       v_frame = Binary probe;
 	  v_args = [Var (Patient, ItemPresent)];			

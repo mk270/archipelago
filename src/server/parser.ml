@@ -10,7 +10,7 @@
 *)
 
 
-open Socket
+open Game
 open Model
 
 (* this needs to become a tuple *)
@@ -227,7 +227,7 @@ let guard_exceptions ~actor e =
 
 let guard_exceptions ~actor = function
 	| Persona.Spell_failed (Persona.Spell_not_available) ->
-		Socket.emitl actor "You don't know that spell."
+		Game.emitl actor "You don't know that spell."
 	| Persona.Spell_failed (Persona.Restricted r) -> 
-		Socket.emitl actor "Restricted"
+		Game.emitl actor "Restricted"
 	| e -> guard_exceptions ~actor e

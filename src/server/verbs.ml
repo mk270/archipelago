@@ -10,7 +10,7 @@
 *)
 
 open Utils
-open Socket
+open Game
 open Model
 open Printf
 open Direction
@@ -184,10 +184,12 @@ let tick ~actor =
 		Daemon.start dmn
 *)
 
+(*
 let when_next ~actor =
 	let tp = Workqueue.top_priority () in
 	let report = Printf.sprintf "Next tick at: %10.10f" tp in
 		emitl actor report
+*)
 
 let gamestat ~actor =
 	(* version, boot time, last reset, war, cloak, players,
