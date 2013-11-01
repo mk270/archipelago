@@ -405,6 +405,11 @@ let attack ~actor ~patient =
 	Fight.set_opponent actor patient;
 	emitl actor (Grammar.render ~patient "You attack %pu.")
 
+(* test verb *) (* FIXME: stop daemon! *)
+let exterminate ~actor ~patient =
+	Model.destroy patient;
+	emitl actor "Monster destroyed."
+
 let fight ~actor ~word =
 	let move = Combat_state.move_of_string word in
 		Fight.do_move actor ~move

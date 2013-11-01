@@ -311,4 +311,9 @@ let vv = [
 	  v_args = [];
 	};
 
+	{ v_name = "exterminate"; (* test verb *)
+	  v_frame = Binary exterminate;
+	  v_args = [ Var (Patient, MonsterPresent); ]
+	};
+
 ]
