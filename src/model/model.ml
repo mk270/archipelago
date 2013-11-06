@@ -9,7 +9,7 @@
   (at your option) any later version.
 *)
 
-open Container
+open Node
 open Direction
 open Name
 open Weather
@@ -22,6 +22,17 @@ open Aperture
    globally, which, now that I've stated it, sounds less like a bad idea 
 *)
 
+type graph_label =
+	| Exit
+	| Contained_in
+	| Unlocked_by
+	| Scenery
+
+let graph_type = function
+	| Exit -> Graph
+	| Contained_in -> Tree
+	| Unlocked_by -> Tree
+	| Scenery -> Graph
 
 type mo_type = MO_Room | MO_Item | MO_Player | MO_Monster | MO_Portal
 
@@ -63,7 +74,7 @@ type player =
 type mudobject =
 		{
 			mo_entity : entity;
-			mutable mo_container : mudobject container option;
+			mutable mo_container : (mudobject, graph_label) node option;
 			mo_name : name;
 			mo_id : int;
 			mo_sex : Sex.sex ;
@@ -319,7 +330,7 @@ struct
 	let wrap_entity ~mo =
 		let id = next_id () in
 		let mo = { mo with mo_id = id; } in
-		let c = create mo in
+		let c = create graph_type mo in
 			mo.mo_container <- Some c;
 			universe := mo :: !universe;
 			mo
@@ -742,7 +753,7 @@ end = struct
 
 	let map_children mo f =
 		let c = container_of_mudobject mo in
-			List.map (fun i -> f (contained i)) (Container.children c)
+			List.map (fun i -> f (contained i)) (Node.sources_of c Contained_in)
 
 	let iter_children mo f =
 		ignore(map_children mo (fun i -> ignore(f i)))
@@ -752,9 +763,10 @@ end = struct
 
 	let parent mo =
 		let c = container_of_mudobject mo in
-			match Container.parent c with
-				| None -> raise Not_found
-				| Some p -> contained p
+			match (Node.destinations_of c Contained_in) with
+				| [] -> raise Not_found
+				| [p] -> contained p
+				| _ -> assert false
 (*
 	let stop_using_object parent child =
 		try let pl = player_of_mudobject parent in
@@ -769,12 +781,12 @@ end = struct
 	let insert_into ~recipient child =
 		let p = container_of_mudobject recipient in
 		let c = container_of_mudobject child in
-			Container.insert_into p c
+			Node.insert_into p c Contained_in
 				
 	let remove_from ~parent child =
 		let p = container_of_mudobject parent in
 		let c = container_of_mudobject child in
-			Container.remove_from p c
+			Node.remove_from p c Contained_in
 
 	let free mo =
 		match mo.mo_entity with
