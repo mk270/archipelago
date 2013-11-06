@@ -74,7 +74,7 @@ type player =
 type mudobject =
 		{
 			mo_entity : entity;
-			mutable mo_container : (mudobject, graph_label) node option;
+			mutable mo_neighbours : (mudobject, graph_label) node option;
 			mo_name : name;
 			mo_id : int;
 			mo_sex : Sex.sex ;
@@ -221,7 +221,7 @@ let aperture_from_mudobject i =
 		| None -> raise No_aperture
 
 let container_of_mudobject mo = 
-	match mo.mo_container with
+	match mo.mo_neighbours with
 		| Some c -> c
 		| None -> failwith "Uninitialised object: no container!"
 
@@ -309,7 +309,7 @@ struct
 
 	let entity_template = {
 		mo_entity = Room;
-		mo_container = None;
+		mo_neighbours = None;
 		mo_name = ("Missing name!", NoAdam, Singular);
 		mo_id = -1;
 		mo_sex = Sex.Neuter;
@@ -331,7 +331,7 @@ struct
 		let id = next_id () in
 		let mo = { mo with mo_id = id; } in
 		let c = create graph_type mo in
-			mo.mo_container <- Some c;
+			mo.mo_neighbours <- Some c;
 			universe := mo :: !universe;
 			mo
 
