@@ -50,7 +50,7 @@ and
 
 type edge
 
-type mo_type = MO_Room | MO_Item | MO_Player | MO_Monster | MO_Portal
+type mo_type = MO_Room | MO_Item | MO_Player | MO_Monster | MO_Portal | MO_Link
 
 module LinkSet      : Set.S with type elt = edge
 module MudobjectSet : Set.S with type elt = mudobject
