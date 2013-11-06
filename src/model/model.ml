@@ -37,6 +37,7 @@ type entity =
 	| Player
 	| Monster
 	| Portal
+	| Link
 
 type loc_info =
 		{ 
@@ -230,6 +231,7 @@ let string_of_entity mo =
 		| Monster -> "monster"
 		| Room -> "location"
 		| Portal -> "door"
+		| Link -> "link"
 
 let string_of_apstate = function
 	| Open -> "open"
