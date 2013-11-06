@@ -103,10 +103,6 @@ and
 			lnk_destination : mudobject;
 			lnk_portal : mudobject option;
 			lnk_required_item : mudobject option;
-			lnk_visible : bool;
-			lnk_counter : link option;
-			lnk_exit_msg : string option;
-			lnk_enter_msg : string option;
 		}
 and
 	exits = (direction, link) Hashtbl.t
@@ -994,10 +990,6 @@ struct
 				lnk_destination = dst;
 				lnk_portal = door;
 				lnk_required_item = req_item;
-				lnk_visible = true;
-				lnk_counter = None;
-				lnk_exit_msg = None;
-				lnk_enter_msg = None;
 			} in
 				Hashtbl.replace src_exits dir l
 			
