@@ -4,5 +4,4 @@ set -eu
 
 cd $(dirname $0)/..
 ocamlbuild -use-ocamlfind src/main/main.byte ; echo
-(sleep 1; xterm -e client/client) &
-cd src ; ../main.byte
+
