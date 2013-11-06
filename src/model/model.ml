@@ -79,7 +79,6 @@ type mudobject =
 			mo_id : int;
 			mo_sex : Sex.sex ;
 			mo_description : string option;
-			mo_exits : exits option;
 			mo_monster_actions : bool option;
 			mo_item_properties : Item_prop.t option;
 			mutable mo_aperture : aperture option;
@@ -90,6 +89,7 @@ type mudobject =
 			mutable mo_bound_to : mudobject option;
 			mutable mo_monster_active : bool;
 			mutable mo_vehicle : mudobject option;
+			mo_link_direction : direction option;
 		}
 and
 	aperture = 
@@ -97,15 +97,6 @@ and
 			ap_fsm : aperture_fsm;
 			ap_key : mudobject option;
 		}
-and
-	link =
-		{
-			lnk_destination : mudobject;
-			lnk_portal : mudobject option;
-			lnk_required_item : mudobject option;
-		}
-and
-	exits = (direction, link) Hashtbl.t
 and
 	fight =
 		{
@@ -156,13 +147,6 @@ type event =
 	| CombatResult of Combat_state.combat_round_result
 	| Death of mudobject * cause_of_death
 
-(* edge represents an exit, but cannot be called exit simply because
-   exit is mistaken for a reserved word by my editor *)
-
-type edge =
-		{ exit_direction : direction;
-		  exit_link : link }
-
 exception No_exit
 exception No_aperture
 exception Portal_not_open of mudobject
@@ -181,6 +165,7 @@ exception Already_bound
 exception Not_bound
 exception Not_free
 exception Not_present
+exception Link_missing_direction
 
 let universe = ref []
 let global_msg_queue = Queue.create ()
@@ -203,9 +188,7 @@ let assert_entity_type ty mo =
 			| _ -> assert false
 
 let exits_of_mudobject mo = 
-	match mo.mo_exits with
-		| None -> raise Not_a_room
-		| Some ex -> ex
+	List.map Node.contained (Node.destinations_of mo Exit)
 
 let player_of_mudobject mo =
 	match mo.mo_player with
@@ -285,7 +268,7 @@ let unbuffer_dirty_mudobjects () =
 let quiescent () =
 	(0 = List.length !dirty) && (Queue.is_empty global_msg_queue)
 
-let direction_in_exit ex = ex.exit_direction
+(* let direction_in_exit ex = ex.exit_direction *)
 
 module Create : sig
 	val create_room : name -> desc : string -> loc_code : string -> terrain : string -> mudobject
@@ -295,6 +278,7 @@ module Create : sig
 	val create_monster : name -> sex : Sex.sex -> mudobject
 	val create_portal : name -> aperture_state -> mudobject
 	val create_aperture : aperture_state -> mudobject option -> aperture
+	val create_link : mudobject -> direction -> mudobject option -> mudobject option -> mudobject
 
 end = 
 struct
@@ -311,7 +295,6 @@ struct
 		mo_id = -1;
 		mo_sex = Sex.Neuter;
 		mo_description = None;
-		mo_exits = None;
 		mo_monster_actions = None;
 		mo_item_properties = None;
 		mo_aperture = None;
@@ -322,6 +305,7 @@ struct
 		mo_bound_to = None;
 		mo_monster_active = false;
 		mo_vehicle = None;
+		mo_link_direction = None;
 	}
 
 	let wrap_entity ~mo =
@@ -343,7 +327,6 @@ struct
 		} in
 		let mo = { entity_template with
 					   mo_description = Some desc;
-					   mo_exits = Some (Hashtbl.create 5);
 					   mo_entity = Room;
 					   mo_name = name;
 					   mo_loc_info = Some loci;
@@ -396,6 +379,14 @@ struct
 					   mo_name = name;
 					   mo_aperture = Some (create_aperture ap_state None);
 				 } in
+			wrap_entity ~mo
+
+	let create_link dst dir portal obj_required =
+		let mo = { entity_template with
+			mo_entity = Link;
+			mo_name = ("link", Name.Indefinite, Name.Singular);
+			mo_link_direction = Some dir;
+		} in
 			wrap_entity ~mo
 
 end
@@ -715,7 +706,8 @@ let unbuffer_mudobject_events mo =
 		Queue.transfer q buf;
 		buf
 
-
+type edge = { exit_direction : direction ;
+			  exit_link : mudobject }
 
 module LinkSet = Set.Make (
 	struct
@@ -972,11 +964,17 @@ end
 module Link =
 struct
 
+	let direction_of_exit mo =
+		match mo.mo_link_direction with
+		| Some dir -> dir
+		| None -> raise Link_missing_direction
+
 	let add_link src dst dir door req_item =
 		let src_exits = exits_of_mudobject src in
 		let dst_exits = exits_of_mudobject dst in
+		let src_dirs = List.map direction_of_exit src_exits in
 			ignore(dst_exits); (* force room *)
-			assert (not (Hashtbl.mem src_exits dir));
+			assert (not (List.mem src_dirs dir));
 			(match door with 
 				 | Some d -> assert_entity_type MO_Portal d
 				 | None -> ());
@@ -986,13 +984,14 @@ struct
 					   flush_all ();*)
 					   assert_entity_type MO_Item d
 				 | None -> ());
-			let l = {
+			ignore (Create.create_link dst dir door req_item)
+(*			let l = {
 				lnk_destination = dst;
 				lnk_portal = door;
 				lnk_required_item = req_item;
 			} in
 				Hashtbl.replace src_exits dir l
-			
+*)			
 	let remove_link mo dir =
 		let src_exits = exits_of_mudobject mo in
 			assert (Hashtbl.mem src_exits dir);
