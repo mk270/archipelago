@@ -34,7 +34,7 @@ let graph_type = function
 	| Unlocked_by -> Tree
 	| Scenery -> Graph
 
-type mo_type = MO_Room | MO_Item | MO_Player | MO_Monster | MO_Portal
+type mo_type = MO_Room | MO_Item | MO_Player | MO_Monster | MO_Portal | MO_Link
 
 type local_weather = {
 	lw_weather : Weather.weather;
@@ -203,6 +203,7 @@ let assert_entity_type ty mo =
 			| MO_Player, Player -> ()
 			| MO_Monster, Monster -> ()
 			| MO_Portal, Portal -> ()
+			| MO_Link, Link -> ()
 			| _ -> assert false
 
 let exits_of_mudobject mo = 
