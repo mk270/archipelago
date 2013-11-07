@@ -1234,14 +1234,6 @@ struct
 				| [] -> raise Not_found
 				| [hd]
 				| hd :: _ -> direction_of_exit (Node.contained hd)
-(*		let directions = List.fold_left (
-			fun a (dir, dest) ->
-				if dst == destination_of_exit dest
-				then dir :: a
-				else a
-		) [] edges in
-			List.hd directions (* will raise Not_found appropriately *)
-*)
 
 	let dir_from_source ~src ~dst =
 		let src' = node_of_mudobject src in
@@ -1251,17 +1243,7 @@ struct
 				| [] -> None
 				| [hd]
 				| hd :: _ -> Some (direction_of_exit (Node.contained hd))
-(*
-	let dir_from_source ~src ~dst =
-		let directions = Hashtbl.fold (
-			fun dir dest a ->
-				if src == dest_in_link dest
-				then dir :: a
-				else a			
-		) (exits_of_mudobject dst) [] in
-			try Some (List.hd directions)
-			with Failure _ -> None
-*)					
+		
 	let portal_in_direction ~src ~dir =
 		let link = 
 			try exit_by_dir src dir
