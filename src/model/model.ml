@@ -1062,6 +1062,7 @@ struct
 				| [] -> failwith "exit not found"
 				| [hd] -> 
 					let dst = node_of_mudobject hd in
+						assert_entity_type MO_Link hd;
 						Node.remove_from dst src Exit
 				| _ -> failwith "two exits in same direction?"
 	(*			assert (List.mem dir src_dirs);*)
