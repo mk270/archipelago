@@ -986,6 +986,10 @@ struct
 		| Some dir -> dir
 		| None -> raise Link_missing_direction
 
+	let edge_of_exit mo =
+		let dir = direction_of_exit mo in
+			(dir, mo)
+
 	let add_link (src : mudobject) (dst :mudobject) (dir : direction) door req_item =
 		let src_exits = exits_of_mudobject src in
 		let dst_exits = exits_of_mudobject dst in
@@ -1019,18 +1023,27 @@ struct
 						Node.remove_from dst src Exit
 				| _ -> failwith "two exits in same direction?"
 	(*			assert (List.mem dir src_dirs);*)
-	
+
+(*	
 	let dest_in_link l =
 		l.lnk_destination
+*)
 
-	let portal_in_link l =
-		l.lnk_portal
+	let portal_in_link mo =
+		let n = node_of_mudobject mo in
+			match (Node.destinations_of n Has_portal) with
+				| [] -> None
+				| [hd] -> Some (Node.contained hd)
+				| _ -> assert false
 
 	let get_all_links mo =
-		let exits = exits_of_mudobject mo in
-			Hashtbl.fold (
-				fun x y a -> LinkSet.add { exit_direction = x; exit_link = y } a
-			) exits LinkSet.empty
+		let exits = List.map edge_of_exit (exits_of_mudobject mo) in
+			List.fold_left (
+				fun a (x, y) -> LinkSet.add { 
+					exit_direction = x; 
+					exit_link = y 
+				} a
+			) LinkSet.empty exits
 				
 	let get_links ~with_portals mo =
 		fst (LinkSet.partition (
