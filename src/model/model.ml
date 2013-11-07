@@ -1014,6 +1014,9 @@ struct
 
 	let exit_by_dir mo dir =
 		let all_exits = exits_of_mudobject mo in
+
+			Printf.printf "#exits in exits by dir: %d\n" (List.length all_exits);
+
 		let right_dir ex = (dir = direction_of_exit ex) in
 		let exits = List.filter right_dir all_exits in
 			match exits with
@@ -1154,8 +1157,9 @@ struct
 
 	(* FIXME: Event to rooms being entered and left *)
 	let move_dir mo dir =
-		let exits = exits_of_mudobject (Tree.parent mo) in
-		let l = (try exit_by_dir mo dir
+		let src = Tree.parent mo in
+		let exits = exits_of_mudobject src in
+		let l = (try exit_by_dir src dir
 				 with Not_found -> raise No_exit)
 		in
 		let dst = destination_of_exit l in
@@ -1178,14 +1182,13 @@ struct
 					(if portal_passable portal
 					 then 
 							(
-								let src = Tree.parent mo in
-									Printf.printf "src: %d; dst %d\n" 
-										(Props.get_id src) 
-										(Props.get_id dst); 
-									flush_all ();
-									post_mudobject_event src (Depart (mo, dir));
-									Tree.insert_into ~recipient:dst mo;
-									post_mudobject_event dst (Arrive (mo, src))
+								Printf.printf "src: %d; dst %d\n" 
+									(Props.get_id src) 
+									(Props.get_id dst); 
+								flush_all ();
+								post_mudobject_event src (Depart (mo, dir));
+								Tree.insert_into ~recipient:dst mo;
+								post_mudobject_event dst (Arrive (mo, src))
 							)
 					 else 
 							let ptl = portal_of_some portal in
