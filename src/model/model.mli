@@ -18,8 +18,6 @@ type combat_info
 type
 	mudobject
 and
-	link
-and
 	aperture
 and
 	fight
@@ -27,8 +25,6 @@ and
 	cause_of_death =
 	| Killed_by of mudobject
 	| Died_of of string
-and
-	exits
 and
 	event =
 	| Logon of mudobject
@@ -97,7 +93,7 @@ module Link : sig
 	val remove_link : mudobject -> direction -> unit
 	val get_all_links : mudobject -> LinkSet.t
 	val portals_in_room : mudobject -> MudobjectSet.t
-	val portal_in_link : link -> mudobject option
+	val portal_in_link : mudobject -> mudobject option
 	val portalled_exit_descriptions : mudobject -> string list
 	val move_dir : mudobject -> direction -> unit
 	val apstate_of_string : string -> aperture_state
@@ -226,4 +222,4 @@ val direction_in_exit : edge -> direction
 
 val join_guild : mudobject -> guild : Guild.t -> unit
 val guild_of_player : mudobject -> Guild.t
-val exits_of_mudobject : mudobject -> exits
+(* val exits_of_mudobject : mudobject -> exits *)

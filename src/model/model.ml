@@ -274,7 +274,6 @@ let unbuffer_dirty_mudobjects () =
 let quiescent () =
 	(0 = List.length !dirty) && (Queue.is_empty global_msg_queue)
 
-(* let direction_in_exit ex = ex.exit_direction *)
 
 module Create : sig
 	val create_room : name -> desc : string -> loc_code : string -> terrain : string -> mudobject
@@ -978,6 +977,8 @@ struct
 
 end
 
+let direction_in_exit ex = ex.exit_direction
+
 module Link =
 struct
 
@@ -1196,20 +1197,21 @@ struct
 		| _ -> assert false
 
 	let reachable ~src ~dst =
+		let can_reach = fun a v -> (dst == destination_of_exit v) || a in
 		let exits = exits_of_mudobject src in
-			Hashtbl.fold (fun _ v a -> (dst == dest_in_link v) || a) exits false
+			List.fold_left can_reach false exits
 
 	let connected ~src ~dst =
 		reachable ~src ~dst && reachable ~dst ~src
 
 	let neighbours' f mo =
 		let exits = exits_of_mudobject mo in
-		let exits' = Hashtbl.fold (
-			fun _ v a -> let dst = dest_in_link v in
+		let exits' = List.fold_left (
+			fun a v -> let dst = destination_of_exit v in
 							 if f ~src:mo ~dst
 							 then MudobjectSet.add dst a
 							 else a
-		) exits MudobjectSet.empty in
+		) MudobjectSet.empty exits in
 			MudobjectSet.elements exits'
 
 	let neighbours mo = 
@@ -1219,14 +1221,31 @@ struct
 		neighbours' (fun ~src ~dst -> reachable ~src ~dst) mo
 
 	let dir_to_destination ~src ~dst =
-		let directions = Hashtbl.fold (
-			fun dir dest a ->
-				if dst == dest_in_link dest
+		let src' = node_of_mudobject src in
+		let exits = Node.destinations_of src' Exit in
+		let exits' = List.filter (fun ex -> dst == Node.contained ex) exits in
+			match exits' with
+				| [] -> raise Not_found
+				| [hd]
+				| hd :: _ -> direction_of_exit (Node.contained hd)
+(*		let directions = List.fold_left (
+			fun a (dir, dest) ->
+				if dst == destination_of_exit dest
 				then dir :: a
 				else a
-		) (exits_of_mudobject src) [] in
+		) [] edges in
 			List.hd directions (* will raise Not_found appropriately *)
+*)
 
+	let dir_from_source ~src ~dst =
+		let src' = node_of_mudobject src in
+		let exits = Node.destinations_of src' Exit in
+		let exits' = List.filter (fun ex -> dst == Node.contained ex) exits in
+			match exits' with
+				| [] -> None
+				| [hd]
+				| hd :: _ -> Some (direction_of_exit (Node.contained hd))
+(*
 	let dir_from_source ~src ~dst =
 		let directions = Hashtbl.fold (
 			fun dir dest a ->
@@ -1236,14 +1255,13 @@ struct
 		) (exits_of_mudobject dst) [] in
 			try Some (List.hd directions)
 			with Failure _ -> None
-					
+*)					
 	let portal_in_direction ~src ~dir =
-		let exits = exits_of_mudobject src in
 		let link = 
-			try Hashtbl.find exits dir
+			try exit_by_dir src dir
 			with Not_found -> failwith "No portal in that direction"
 		in
-			match portal_in_link link with
+			match portal_of_exit link with
 				| Some mo -> mo
 				| None -> failwith "No portal in that direction"
 
