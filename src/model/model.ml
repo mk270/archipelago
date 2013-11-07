@@ -396,6 +396,7 @@ struct
 		} in
 		let ent = wrap_entity ~mo in
 		let src = node_of_mudobject ent in
+			assert_entity_type MO_Link (Node.contained dst);
 			Node.insert_into dst src Exit;
 			(match portal with
 				| None -> ()
@@ -1051,7 +1052,6 @@ struct
 	let remove_link mo dir =
 		let src = node_of_mudobject mo in
 		let src_exits = exits_of_mudobject mo in
-		let src_dirs = List.map direction_of_exit src_exits in
 		let right_dir ex = (dir = direction_of_exit ex) in
 			match (List.filter right_dir src_exits) with
 				| [] -> failwith "exit not found"
@@ -1158,7 +1158,6 @@ struct
 	(* FIXME: Event to rooms being entered and left *)
 	let move_dir mo dir =
 		let src = Tree.parent mo in
-		let exits = exits_of_mudobject src in
 		let l = (try exit_by_dir src dir
 				 with Not_found -> raise No_exit)
 		in
