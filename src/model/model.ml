@@ -389,6 +389,10 @@ struct
 			wrap_entity ~mo
 
 	let create_link dst dir portal obj_required =
+		let dst_mo = Node.contained dst in
+		let vague_name = Name.vague dst_mo.mo_name in
+		let ty = string_of_entity dst_mo in
+		Printf.printf "create_link: %d (%s:%s)\n" (dst_mo.mo_id) ty vague_name;
 		let mo = { entity_template with
 			mo_entity = Link;
 			mo_name = ("link", Name.Indefinite, Name.Singular);
@@ -396,19 +400,19 @@ struct
 		} in
 		let ent = wrap_entity ~mo in
 		let src = node_of_mudobject ent in
-			assert_entity_type MO_Link (Node.contained dst);
+			assert_entity_type MO_Room (Node.contained dst);
 			Node.insert_into dst src Exit;
 
-			let add_optional_link dst' ty =
+			let add_optional_link dst' ty entity_type =
 				(match dst' with
 					| None -> ()
 					| Some d ->
-						assert_entity_type MO_Link (Node.contained d);
+						assert_entity_type entity_type (Node.contained d);
 						Node.insert_into d src ty)
 			in
-				List.iter (fun (dst', ty) -> add_optional_link dst' ty)
-					[ (portal, Has_portal);
-					  (obj_required, Requires_obj) ];
+				List.iter (fun (dst', ty, ety) -> add_optional_link dst' ty ety)
+					[ (portal, Has_portal, MO_Portal);
+					  (obj_required, Requires_obj, MO_Item) ];
 			ent
 
 end
