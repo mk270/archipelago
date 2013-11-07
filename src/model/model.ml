@@ -1067,11 +1067,6 @@ struct
 				| _ -> failwith "two exits in same direction?"
 	(*			assert (List.mem dir src_dirs);*)
 
-(*	
-	let dest_in_link l =
-		l.lnk_destination
-*)
-
 	let portal_in_link mo =
 		let n = node_of_mudobject mo in
 			match (Node.destinations_of n Has_portal) with
