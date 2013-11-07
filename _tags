@@ -1,4 +1,5 @@
 <src/*/*.ml{,}>: debug
+<src/*/*.ml{,}>: annot
 "src/main/main.byte": debug
 # OASIS_START
 # DO NOT EDIT (digest: a5048b9cfe94e2e20a552c031ddec11c)
