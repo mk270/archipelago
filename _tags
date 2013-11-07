@@ -1,3 +1,5 @@
+<src/*/*.ml{,}>: debug
+"src/main/main.byte": debug
 # OASIS_START
 # DO NOT EDIT (digest: a5048b9cfe94e2e20a552c031ddec11c)
 # Ignore VCS directories, you can use the same kind of rule outside 
