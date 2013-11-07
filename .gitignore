@@ -16,3 +16,4 @@ META
 myocamlbuild.ml
 _tags
 setup.ml
+db/island.db
