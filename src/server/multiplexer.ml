@@ -135,7 +135,7 @@ let run m =
 		match m.running with
 			| true -> 
 				pump m;
-				(if (Reset.do_shutdown ())
+				(if (Game.do_shutdown ())
 				 then stop m);
 				keep_running m
 			| false -> ()

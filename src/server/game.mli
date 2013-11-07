@@ -18,3 +18,7 @@ val output_iter : (mudobject -> string -> unit) -> unit
 (* wrapper for workqueue *)
 val pump_till_current : unit -> unit
 val top_priority : unit -> float
+
+(* wrapper for reset *)
+val do_shutdown : unit -> bool
+val set_shutdown : unit -> unit

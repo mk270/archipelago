@@ -27,3 +27,6 @@ let output_iter f =
 
 let pump_till_current = Workqueue.pump_till_current
 let top_priority = Workqueue.top_priority
+
+let do_shutdown = Reset.do_shutdown
+let set_shutdown = Reset.set_shutdown
