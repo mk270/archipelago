@@ -20,14 +20,20 @@ Library model
   Modules:    Model
   BuildDepends: utils
 
+Library game
+  Path:       src/game
+  BuildTools: ocamlbuild
+  Modules:    Game
+  BuildDepends: utils, model
+
 Library server
   Path:       src/server
   BuildTools: ocamlbuild
   Modules:    World
-  BuildDepends: sqlite3, utils, model
+  BuildDepends: sqlite3, utils, game
 
 Executable archipelago
   Path:       src/main
   BuildTools: ocamlbuild
   MainIs:     main.ml
-  BuildDepends: oUnit, utils, model, server
+  BuildDepends: oUnit, utils, model, game, server
