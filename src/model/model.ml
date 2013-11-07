@@ -1238,11 +1238,15 @@ struct
 	let dir_from_source ~src ~dst =
 		let src' = node_of_mudobject src in
 		let exits = Node.destinations_of src' Exit in
-		let exits' = List.filter (fun ex -> dst == Node.contained ex) exits in
+		let dsts = List.map 
+			(fun i -> destination_of_exit (Node.contained i))
+			exits 
+		in 
+		let exits' = List.filter (fun ex -> dst == ex) dsts in
 			match exits' with
 				| [] -> None
 				| [hd]
-				| hd :: _ -> Some (direction_of_exit (Node.contained hd))
+				| hd :: _ -> Some (direction_of_exit hd)
 		
 	let portal_in_direction ~src ~dir =
 		let link = 
