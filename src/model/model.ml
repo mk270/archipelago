@@ -1002,19 +1002,11 @@ struct
 		let req_item_mo =
 			(match req_item with
 				 | Some d -> 
-(*					   Printf.printf "ItReq: [%s]\n" (Props.get_vague_name d);
-					   flush_all ();*)
-					   assert_entity_type MO_Item d;
+					 assert_entity_type MO_Item d;
 					 Some (node_of_mudobject d)
 				 | None -> None) in
 			ignore (Create.create_link dst_mo dir door_mo req_item_mo)
-(*			let l = {
-				lnk_destination = dst;
-				lnk_portal = door;
-				lnk_required_item = req_item;
-			} in
-				Hashtbl.replace src_exits dir l
-*)			
+
 	let remove_link mo dir =
 		let src = node_of_mudobject mo in
 		let src_exits = exits_of_mudobject mo in
