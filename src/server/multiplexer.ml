@@ -65,7 +65,7 @@ let stop m =
 let timeout m =
 	let fudge = 1.0 /. 1000000.0 in
 		try
-			let next_event = Workqueue.top_priority () +. fudge in
+			let next_event = Game.top_priority () +. fudge in
 			let till_next = next_event -. Unix.gettimeofday () in
 				min m.timeout till_next
 		with Prioqueue.Queue_is_empty -> m.timeout
@@ -100,7 +100,7 @@ let pump m =
 	in
 		Hashtbl.iter rm_socket m.switchboard;
 		List.iter handle_read' (poll_readable m);
-		Workqueue.pump_till_current ();
+		Game.pump_till_current ();
 		List.iter run_callback m.callbacks;
 		Game.output_iter drain_game_output;
 		(* FIXME *)

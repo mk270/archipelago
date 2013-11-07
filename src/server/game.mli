@@ -14,3 +14,7 @@ open Model
 val emitl : mudobject -> string -> unit
 val current_players : unit -> mudobject list
 val output_iter : (mudobject -> string -> unit) -> unit
+
+(* wrapper for workqueue *)
+val pump_till_current : unit -> unit
+val top_priority : unit -> float

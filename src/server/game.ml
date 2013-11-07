@@ -24,3 +24,6 @@ let output_iter f =
 		Queue.clear tmp_queue;
 		Queue.transfer emission_queue tmp_queue;
 		Queue.iter f' tmp_queue
+
+let pump_till_current = Workqueue.pump_till_current
+let top_priority = Workqueue.top_priority
