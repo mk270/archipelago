@@ -1040,7 +1040,10 @@ struct
 					 assert_entity_type MO_Item d;
 					 Some (node_of_mudobject d)
 				 | None -> None) in
-			ignore (Create.create_link dst_mo dir door_mo req_item_mo)
+		let l = Create.create_link dst_mo dir door_mo req_item_mo in
+		let n = node_of_mudobject l in
+		let src_mo = node_of_mudobject src in
+			Node.insert_into n src_mo Exit
 
 	let remove_link mo dir =
 		let src = node_of_mudobject mo in
