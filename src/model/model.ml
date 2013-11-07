@@ -27,12 +27,16 @@ type graph_label =
 	| Contained_in
 	| Unlocked_by
 	| Scenery
+	| Has_portal
+	| Requires_obj
 
 let graph_type = function
 	| Exit -> Graph
 	| Contained_in -> Tree
 	| Unlocked_by -> Tree
 	| Scenery -> Graph
+	| Has_portal -> Tree
+	| Requires_obj -> Tree
 
 type mo_type = MO_Room | MO_Item | MO_Player | MO_Monster | MO_Portal | MO_Link
 
@@ -188,7 +192,9 @@ let assert_entity_type ty mo =
 			| _ -> assert false
 
 let exits_of_mudobject mo = 
-	List.map Node.contained (Node.destinations_of mo Exit)
+	match mo.mo_neighbours with
+	| Some n -> List.map Node.contained (Node.destinations_of n Exit)
+	| None -> assert false
 
 let player_of_mudobject mo =
 	match mo.mo_player with
@@ -200,10 +206,10 @@ let aperture_from_mudobject i =
 		| Some a -> a
 		| None -> raise No_aperture
 
-let container_of_mudobject mo = 
+let node_of_mudobject mo =
 	match mo.mo_neighbours with
 		| Some c -> c
-		| None -> failwith "Uninitialised object: no container!"
+		| None -> failwith "Uninitialised object: no node!"
 
 let mudobj_ty_match mo ty =
 	match ty, mo.mo_entity with
@@ -278,7 +284,9 @@ module Create : sig
 	val create_monster : name -> sex : Sex.sex -> mudobject
 	val create_portal : name -> aperture_state -> mudobject
 	val create_aperture : aperture_state -> mudobject option -> aperture
-	val create_link : mudobject -> direction -> mudobject option -> mudobject option -> mudobject
+	val create_link : (mudobject, graph_label) node -> direction -> 
+		(mudobject, graph_label) node option -> 
+		(mudobject, graph_label) node option -> mudobject
 
 end = 
 struct
@@ -387,7 +395,16 @@ struct
 			mo_name = ("link", Name.Indefinite, Name.Singular);
 			mo_link_direction = Some dir;
 		} in
-			wrap_entity ~mo
+		let ent = wrap_entity ~mo in
+		let src = node_of_mudobject ent in
+			Node.insert_into dst src Exit;
+			(match portal with
+				| None -> ()
+				| Some p -> Node.insert_into p src Has_portal);
+			(match obj_required with
+				| None -> ()
+				| Some o -> Node.insert_into o src Requires_obj);
+			ent
 
 end
 
@@ -741,7 +758,7 @@ module Tree : sig
 end = struct
 
 	let map_children mo f =
-		let c = container_of_mudobject mo in
+		let c = node_of_mudobject mo in
 			List.map (fun i -> f (contained i)) (Node.sources_of c Contained_in)
 
 	let iter_children mo f =
@@ -751,7 +768,7 @@ end = struct
 		map_children mo (fun x -> x)
 
 	let parent mo =
-		let c = container_of_mudobject mo in
+		let c = node_of_mudobject mo in
 			match (Node.destinations_of c Contained_in) with
 				| [] -> raise Not_found
 				| [p] -> contained p
@@ -768,13 +785,13 @@ end = struct
 		with Not_a_player -> ()
 *)
 	let insert_into ~recipient child =
-		let p = container_of_mudobject recipient in
-		let c = container_of_mudobject child in
+		let p = node_of_mudobject recipient in
+		let c = node_of_mudobject child in
 			Node.insert_into p c Contained_in
 				
 	let remove_from ~parent child =
-		let p = container_of_mudobject parent in
-		let c = container_of_mudobject child in
+		let p = node_of_mudobject parent in
+		let c = node_of_mudobject child in
 			Node.remove_from p c Contained_in
 
 	let free mo =
@@ -969,22 +986,28 @@ struct
 		| Some dir -> dir
 		| None -> raise Link_missing_direction
 
-	let add_link src dst dir door req_item =
+	let add_link (src : mudobject) (dst :mudobject) (dir : direction) door req_item =
 		let src_exits = exits_of_mudobject src in
 		let dst_exits = exits_of_mudobject dst in
 		let src_dirs = List.map direction_of_exit src_exits in
+		let dst_mo = node_of_mudobject dst in
 			ignore(dst_exits); (* force room *)
-			assert (not (List.mem src_dirs dir));
+			assert (not (List.mem dir src_dirs));
+		let door_mo =
 			(match door with 
-				 | Some d -> assert_entity_type MO_Portal d
-				 | None -> ());
+				 | Some d -> 
+					 assert_entity_type MO_Portal d;
+					 Some (node_of_mudobject d)
+				 | None -> None) in
+		let req_item_mo =
 			(match req_item with
 				 | Some d -> 
 (*					   Printf.printf "ItReq: [%s]\n" (Props.get_vague_name d);
 					   flush_all ();*)
-					   assert_entity_type MO_Item d
-				 | None -> ());
-			ignore (Create.create_link dst dir door req_item)
+					   assert_entity_type MO_Item d;
+					 Some (node_of_mudobject d)
+				 | None -> None) in
+			ignore (Create.create_link dst_mo dir door_mo req_item_mo)
 (*			let l = {
 				lnk_destination = dst;
 				lnk_portal = door;
@@ -993,9 +1016,17 @@ struct
 				Hashtbl.replace src_exits dir l
 *)			
 	let remove_link mo dir =
+		let src = node_of_mudobject mo in
 		let src_exits = exits_of_mudobject mo in
-			assert (Hashtbl.mem src_exits dir);
-			Hashtbl.remove src_exits dir
+		let src_dirs = List.map direction_of_exit src_exits in
+		let right_dir ex = (dir = direction_of_exit ex) in
+			match (List.filter right_dir src_exits) with
+				| [] -> failwith "exit not found"
+				| [hd] -> 
+					let dst = node_of_mudobject hd in
+						Node.remove_from dst src Exit
+				| _ -> failwith "two exits in same direction?"
+	(*			assert (List.mem dir src_dirs);*)
 	
 	let dest_in_link l =
 		l.lnk_destination
