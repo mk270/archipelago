@@ -986,9 +986,39 @@ struct
 		| Some dir -> dir
 		| None -> raise Link_missing_direction
 
+	let destination_of_exit mo =
+		let n = node_of_mudobject mo in
+		match (Node.destinations_of n Exit) with
+			| [] -> raise No_exit
+			| [hd] -> Node.contained hd
+			| _ -> failwith "multiple destinations from exit"
+
+	let required_item_of_exit mo =
+		let n = node_of_mudobject mo in
+		match (Node.destinations_of n Requires_obj) with
+			| [] -> None
+			| [hd] -> Some (Node.contained hd)
+			| _ -> failwith "multiple req objs in exit"
+
+	let portal_of_exit mo =
+		let n = node_of_mudobject mo in
+		match (Node.destinations_of n Has_portal) with
+			| [] -> None
+			| [hd] -> Some (Node.contained hd)
+			| _ -> failwith "multiple portals in exit"
+
 	let edge_of_exit mo =
 		let dir = direction_of_exit mo in
 			(dir, mo)
+
+	let exit_by_dir mo dir =
+		let all_exits = exits_of_mudobject mo in
+		let right_dir ex = (dir = direction_of_exit ex) in
+		let exits = List.filter right_dir all_exits in
+			match exits with
+			| [] -> raise Not_found
+			| [hd] -> hd
+			| _ -> failwith "Too many exits in same dir"
 
 	let add_link (src : mudobject) (dst :mudobject) (dir : direction) door req_item =
 		let src_exits = exits_of_mudobject src in
@@ -1121,10 +1151,11 @@ struct
 	(* FIXME: Event to rooms being entered and left *)
 	let move_dir mo dir =
 		let exits = exits_of_mudobject (Tree.parent mo) in
-		let l = (try Hashtbl.find exits dir
+		let l = (try exit_by_dir mo dir
 				 with Not_found -> raise No_exit)
 		in
-		let dst_vehicularity = Vehicle.get_required_vehicle l.lnk_destination in
+		let dst = destination_of_exit l in
+		let dst_vehicularity = Vehicle.get_required_vehicle dst in
 		let current = Tree.parent mo in
 		let cur_vehicularity = Vehicle.get_required_vehicle current in
 		let pl_vehicle = 
@@ -1132,26 +1163,29 @@ struct
 				| None -> None
 				| Some vh -> Vehicle.get_item_vehicularity vh
 		in
-			(match l.lnk_required_item with
+			(match required_item_of_exit l with
 				 | Some o -> 
 					   if mo != Tree.parent o
 					   then raise Item_required_for_passage
 				 | None -> ());
 			if vehicular_travel_permitted ~pl_vehicle ~dst_vehicularity ~cur_vehicularity
 			then 
-				(if portal_passable l.lnk_portal
-				 then 
-						(
-							let src = Tree.parent mo in
-							let dst = l.lnk_destination in
-								Printf.printf "src: %d; dst %d\n" (Props.get_id src) (Props.get_id dst); flush_all ();
-								post_mudobject_event src (Depart (mo, dir));
-								Tree.insert_into ~recipient:dst mo;
-								post_mudobject_event dst (Arrive (mo, src))
-						)
-				 else 
-					 let ptl = portal_of_some l.lnk_portal in
-						 raise (Portal_not_open ptl))
+				let portal = portal_of_exit l in
+					(if portal_passable portal
+					 then 
+							(
+								let src = Tree.parent mo in
+									Printf.printf "src: %d; dst %d\n" 
+										(Props.get_id src) 
+										(Props.get_id dst); 
+									flush_all ();
+									post_mudobject_event src (Depart (mo, dir));
+									Tree.insert_into ~recipient:dst mo;
+									post_mudobject_event dst (Arrive (mo, src))
+							)
+					 else 
+							let ptl = portal_of_some portal in
+								raise (Portal_not_open ptl))
 			else raise Vehicle_required
 
 	(* FIXME: presumably this should be somewhere else *)
