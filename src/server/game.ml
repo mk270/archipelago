@@ -9,6 +9,12 @@
   (at your option) any later version.
 *)
 
+let init () =
+	()
+
+let fini () =
+	()
+
 let emission_queue = Queue.create ()
 let tmp_queue = Queue.create ()
 

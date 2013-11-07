@@ -11,6 +11,9 @@
 
 open Model
 
+val init : unit -> unit
+val fini : unit -> unit
+
 val emitl : mudobject -> string -> unit
 val current_players : unit -> mudobject list
 val output_iter : (mudobject -> string -> unit) -> unit
