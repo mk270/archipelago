@@ -19,8 +19,11 @@ val current_players : unit -> mudobject list
 val output_iter : (mudobject -> string -> unit) -> unit
 
 (* wrapper for workqueue *)
+type thunk = unit -> unit
+
 val pump_till_current : unit -> unit
 val top_priority : unit -> float
+val workqueue_post : delay : float -> thunk -> unit
 
 (* wrapper for reset *)
 val do_shutdown : unit -> bool

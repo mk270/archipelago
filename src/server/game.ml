@@ -9,6 +9,8 @@
   (at your option) any later version.
 *)
 
+type thunk = unit -> unit
+
 let init () =
 	()
 
@@ -33,6 +35,7 @@ let output_iter f =
 
 let pump_till_current = Workqueue.pump_till_current
 let top_priority = Workqueue.top_priority
+let workqueue_post = Workqueue.post
 
 let do_shutdown = Reset.do_shutdown
 let set_shutdown = Reset.set_shutdown
