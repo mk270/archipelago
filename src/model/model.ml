@@ -398,12 +398,17 @@ struct
 		let src = node_of_mudobject ent in
 			assert_entity_type MO_Link (Node.contained dst);
 			Node.insert_into dst src Exit;
-			(match portal with
-				| None -> ()
-				| Some p -> Node.insert_into p src Has_portal);
-			(match obj_required with
-				| None -> ()
-				| Some o -> Node.insert_into o src Requires_obj);
+
+			let add_optional_link dst' ty =
+				(match dst' with
+					| None -> ()
+					| Some d ->
+						assert_entity_type MO_Link (Node.contained d);
+						Node.insert_into d src ty)
+			in
+				List.iter (fun (dst', ty) -> add_optional_link dst' ty)
+					[ (portal, Has_portal);
+					  (obj_required, Requires_obj) ];
 			ent
 
 end
