@@ -10,11 +10,12 @@
 *)
 
 open Utils
-open Game
 open Model
 open Printf
 open Direction
 open Aperture
+
+let emitl = Game.emitl
 
 let level_change ~actor ~cur_level ~new_level =
 	let rise = new_level > cur_level in

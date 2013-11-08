@@ -10,7 +10,6 @@
 *)
 
 
-open Game
 open Model
 
 (* this needs to become a tuple *)
@@ -220,7 +219,7 @@ let exec verb ~actor line =
 let guard_exceptions ~actor e =
 	let msg = "An error occurred: " ^ (Printexc.to_string e) in
 	let bt = Printexc.get_backtrace () in
-		emitl actor msg;
+		Game.emitl actor msg;
 		print_endline bt;
 		print_endline msg;
 		flush_all ()
