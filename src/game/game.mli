@@ -16,6 +16,8 @@ val fini : unit -> unit
 
 val emitl : mudobject -> string -> unit
 val current_players : unit -> mudobject list
+val add_current_player : mudobject -> unit
+val remove_current_player : mudobject -> unit
 val output_iter : (mudobject -> string -> unit) -> unit
 
 (* wrapper for workqueue *)

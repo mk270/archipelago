@@ -25,7 +25,17 @@ let tmp_queue = Queue.create ()
 let emitl mo msg =
 	Queue.add (mo, msg) emission_queue
 
-let current_players = Socket.current_players
+let player_list = ref []
+
+let current_players () = !player_list
+
+let add_current_player mo =
+	assert (not (List.memq mo !player_list));
+	player_list := mo :: !player_list
+
+let remove_current_player mo =
+	assert (List.memq mo !player_list);
+	player_list := Utils.remove mo !player_list
 
 let output_iter f =
 	let f' (mo, msg) = f mo msg in
@@ -39,3 +49,5 @@ let workqueue_post = Workqueue.post
 
 let do_shutdown = Reset.do_shutdown
 let set_shutdown = Reset.set_shutdown
+
+
