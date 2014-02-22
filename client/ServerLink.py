@@ -80,5 +80,5 @@ class ServerLink(Socket):
     def get_delim(self):
         return "\n"
 
-    def setup(pass):
+    def setup(self):
         pass
