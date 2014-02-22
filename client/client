@@ -321,6 +321,7 @@ def run_alt():
     curses.cbreak()
     stdscr.keypad(True)
     try:
+        msg = ""
         msg = main(stdscr)
     finally:
         curses.nocbreak()
