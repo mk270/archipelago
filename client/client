@@ -36,6 +36,7 @@ class ServerLink(Socket):
         super(ServerLink, self).__init__(sock, address)
         self.connect(address)
         self.setNonBlocking()
+        self.delim = "\n"
         self.ss = ss
         self.ss.set_sock(self)
 
@@ -45,12 +46,12 @@ class ServerLink(Socket):
     def newInput(self):
         self.input_buffer = zap_cr.sub('', self.input_buffer, 0)
 
-        y = self.input_buffer.rfind("\n")
+        y = self.input_buffer.rfind(self.delim)
         if y == -1:
             return
         to_process = self.input_buffer[0:y]
         self.input_buffer = self.input_buffer[y+1:]
-        for i in to_process.split("\n"):
+        for i in to_process.split(self.delim):
             self.handleLine(i)
 
     def handleLine(self, line):
