@@ -131,8 +131,12 @@ class SplitScreen(object):
         self.scr.setscrreg(0, self.bottom_line - 1)
         self.scr.nodelay(True)
 
+    def fixup_line(self, line):
+        return line
+
     def emit_line(self, line):
         self.scr.scroll(1)
+        line = self.fixup_line(line)
         self.scr.addstr(self.bottom_line - 1, 0, line)
         self.place_cursor()
         self.scr.refresh()
