@@ -247,13 +247,19 @@ class SplitScreen(object):
         self.server_link.multi.setTimeout(250)
         self.server_link.multi.setOnTimeout(lambda : self.throb())
 
+    def set_prompt(self, new_prompt):
+        self.prompt = new_prompt
+        self.write_prompt()
+        self.replace_line(self.cmd)
+
+    def set_password_mode(self, mode):
+        self.password_mode = mode
+
     def process_srv_command(self, cmd, arg):
         if cmd == 'PSW':
-            self.password_mode = True
+            self.set_password_mode(True)
         elif cmd == 'PRN':
-            self.prompt = arg
-            self.write_prompt()
-            self.replace_line(self.cmd)
+            self.set_prompt(arg)
         elif cmd == 'DLY':
             try:
                 delay = float(arg)
