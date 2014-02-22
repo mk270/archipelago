@@ -73,6 +73,9 @@ class Socket(object):
     def emit(self, line):
         self.s.send(line + "\r\n")
 
+    def emit_raw(self, data):
+        self.s.send(data)
+
     def passwordMode(self):
         self.s.send("\377PSW \r\n")
 
