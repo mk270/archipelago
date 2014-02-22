@@ -74,6 +74,7 @@ class ServerLink(Socket):
         self.multi.removeSocket(self)
         self.multi.stop()
         self.s.close()
+        self.ss.shutdown()
         self.ss.emit_line("Connection closed by foreign host.")
  
 class Stdin(Socket):
@@ -302,7 +303,7 @@ def main(stdscr):
 
     ss.set_server_link(server)
 
-    if server.connected:
+    if not server.connection_failed:
         m = Multiplexer()
         m.addSocket(server)
         m.addSocket(stdin)
