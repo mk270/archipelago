@@ -34,14 +34,18 @@ class ServerLink(Socket):
     def __init__(self, address, ss=None):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         super(ServerLink, self).__init__(sock, address)
-        self.connect(address)
-        self.setNonBlocking()
-        self.delim = "\n"
         self.ss = ss
         self.ss.set_sock(self)
+        self.connection_failed = self.connect(address)
+        self.setNonBlocking()
+        self.delim = "\n"
 
     def connect(self, address):
-        self.s.connect(address)
+        try:
+            self.s.connect(address)
+            return None
+        except Exception as e:
+            return str(e)
 
     def newInput(self):
         self.input_buffer = zap_cr.sub('', self.input_buffer, 0)
@@ -53,6 +57,10 @@ class ServerLink(Socket):
         self.input_buffer = self.input_buffer[y+1:]
         for i in to_process.split(self.delim):
             self.handleLine(i)
+
+    def handleHangup(self):
+        self.ss.emit_line("Remote hung up")
+        ## EOF?
 
     def handleLine(self, line):
         if len(line) >= 4 and line[0] == '\377':
@@ -286,15 +294,21 @@ def main(stdscr):
     ss.write_prompt()
 
     server = ServerLink(server_address, ss=ss)
+
+    if server.connection_failed:
+        return server.connection_failed
+
     stdin = SSFE(ss=ss)
 
     ss.set_server_link(server)
 
-    m = Multiplexer()
-    m.addSocket(server)
-    m.addSocket(stdin)
-    m.run()
+    if server.connected:
+        m = Multiplexer()
+        m.addSocket(server)
+        m.addSocket(stdin)
+        m.run()
     ss.shutdown()
+    return ""
 
 def run():
     curses.wrapper(main)
@@ -307,12 +321,13 @@ def run_alt():
     curses.cbreak()
     stdscr.keypad(True)
     try:
-        main(stdscr)
+        msg = main(stdscr)
     finally:
         curses.nocbreak()
         stdscr.keypad(False)
         curses.echo()
         os.system("stty sane") # screw you, ncurses
+        print "\r" + msg
 
 if __name__ == '__main__':
     run_alt()

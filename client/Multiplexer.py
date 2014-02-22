@@ -58,7 +58,7 @@ class Multiplexer:
                 sock.handleReadable()
 	    if events & select.POLLHUP:
                 sock = self.switchboard[fd]
-                sock.HandleHangup()
+                sock.handleHangup()
 			
     def shutdown(self):
         [ s.EOF() for s in self.allConnections() ]
