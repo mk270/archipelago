@@ -36,9 +36,25 @@ class ServerLink(Socket):
         super(ServerLink, self).__init__(sock, address)
         self.ss = ss
         self.ss.set_sock(self)
+        self.set_hostname()
         self.connection_failed = self.connect(address)
         self.setNonBlocking()
         self.delim = self.get_delim()
+
+    def set_hostname(self):
+        if len(sys.argv) == 2:
+            progname, ip_address = sys.argv
+            
+            self.ip_address = ip_address
+            
+            try:
+                self.hostname, _ = socket.gethostbyaddr(ip_address)
+            except:
+                self.hostname = ip_address
+        else:
+            self.hostname = None
+            self.ip_address = "127.0.0.1"
+
 
     def connect(self, address):
         try:
