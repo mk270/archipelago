@@ -257,7 +257,10 @@ class SplitScreen(object):
         else:
             self.emit_line("CMD: [%s]" % cmd)
             self.emit_line("ARG: [%s]" % arg)
-        
+
+    def shutdown(self):
+        self.set_prompt("")
+
 def main(stdscr):
     ss = SplitScreen(stdscr)
     ss.setup()
@@ -272,7 +275,7 @@ def main(stdscr):
     m.addSocket(server)
     m.addSocket(stdin)
     m.run()
-    time.sleep(1)
+    ss.shutdown()
 
 def run():
     curses.wrapper(main)
