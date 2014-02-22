@@ -38,7 +38,7 @@ class ServerLink(Socket):
         self.ss.set_sock(self)
         self.connection_failed = self.connect(address)
         self.setNonBlocking()
-        self.delim = "\n"
+        self.delim = self.get_delim()
 
     def connect(self, address):
         try:
@@ -76,6 +76,9 @@ class ServerLink(Socket):
         self.s.close()
         self.ss.shutdown()
         self.ss.emit_line("Connection closed by foreign host.")
+
+    def get_delim(self):
+        return "\n"
  
 class Stdin(Socket):
     def __init__(self):
