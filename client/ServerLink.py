@@ -23,6 +23,7 @@ class ServerLink(Socket):
         self.connection_failed = self.connect(address)
         self.setNonBlocking()
         self.delim = self.get_delim()
+        self.setup()
 
     def set_hostname(self):
         if len(sys.argv) == 2:
@@ -78,3 +79,6 @@ class ServerLink(Socket):
 
     def get_delim(self):
         return "\n"
+
+    def setup():
+        pass
