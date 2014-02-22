@@ -19,6 +19,8 @@ import socket
 from Multiplexer import Multiplexer
 from Networking import Socket, zap_cr
 
+server_address = ('localhost', 2500)
+
 class Throbber(object):
     def __init__(self):
         self.text = '/|\\-'
@@ -261,7 +263,7 @@ def main(stdscr):
     ss.setup()
     ss.write_prompt()
 
-    server = ServerLink(('localhost', 2500), ss=ss)
+    server = ServerLink(server_address, ss=ss)
     stdin = SSFE(ss=ss)
 
     ss.set_server_link(server)
