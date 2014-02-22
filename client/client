@@ -275,5 +275,20 @@ def main(stdscr):
 def run():
     curses.wrapper(main)
 
+def run_alt():
+    import os
+
+    stdscr = curses.initscr()
+    curses.noecho()
+    curses.cbreak()
+    stdscr.keypad(True)
+    try:
+        main(stdscr)
+    finally:
+        curses.nocbreak()
+        stdscr.keypad(False)
+        curses.echo()
+        os.system("stty sane") # screw you, ncurses
+
 if __name__ == '__main__':
-    run()
+    run_alt()
