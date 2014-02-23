@@ -108,11 +108,7 @@ class SplitScreen(object):
                             self.cmd[self.pos:])
             self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
 
-    def backspace(self):
-        if self.pos == 0:
-            return
-        self.cmd = self.cmd[:self.pos - 1] + self.cmd[self.pos:]
-        self.pos -= 1
+    def adjust_after_deletion(self):
         self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
         if self.pos < len(self.cmd):
             self.scr.addstr(self.bottom_line, len(self.prompt) + self.pos, 
@@ -121,6 +117,21 @@ class SplitScreen(object):
             self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
         else:
             self.scr.clrtoeol()
+
+    def backspace(self):
+        if self.pos == 0:
+            return
+        self.cmd = self.cmd[:self.pos - 1] + self.cmd[self.pos:]
+        self.pos -= 1
+        self.adjust_after_deletion()
+
+    def delete(self):
+        if len(self.cmd) < 1:
+            return
+        if self.pos == len(self.cmd):
+            return
+        self.cmd = self.cmd[:self.pos] + self.cmd[self.pos + 1:]
+        self.adjust_after_deletion()
 
     def record_history(self, cmd):
         self.history[self.hist_pos] = cmd
@@ -189,7 +200,7 @@ class SplitScreen(object):
             curses.KEY_LEFT: self.go_left,
             curses.KEY_RIGHT: self.go_right,
             curses.KEY_BACKSPACE: self.backspace,
-            
+            CTRL_D: self.delete,
             CTRL_U: self.kill_line,
             0: lambda : None
             }
