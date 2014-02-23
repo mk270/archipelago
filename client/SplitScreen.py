@@ -101,8 +101,12 @@ class SplitScreen(object):
         else:
             c = '*'
         self.scr.addch(self.bottom_line, len(self.prompt) + self.pos, c)
-        self.cmd += chr(ch)
+        self.cmd = self.cmd[:self.pos] + chr(ch) + self.cmd[self.pos:]
         self.pos += 1
+        if self.pos < len(self.cmd):
+            self.scr.addstr(self.bottom_line, len(self.prompt) + self.pos, 
+                            self.cmd[self.pos:])
+            self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
 
     def backspace(self):
         if self.pos == 0:
@@ -158,13 +162,23 @@ class SplitScreen(object):
     def history_fwd(self):
         self.do_history(1)
 
+    def go_left(self):
+        if self.pos > 0:
+            self.pos -= 1
+            self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
+
+    def go_right(self):
+        if self.pos < len(self.cmd):
+            self.pos += 1
+            self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
+
     def handle_input(self):
         CTRL_U = 21
         handlers = {
             curses.KEY_UP: self.history_back,
             curses.KEY_DOWN: self.history_fwd,
-            curses.KEY_LEFT: self.noop,
-            curses.KEY_RIGHT: self.noop,
+            curses.KEY_LEFT: self.go_left,
+            curses.KEY_RIGHT: self.go_right,
             curses.KEY_BACKSPACE: self.backspace,
             CTRL_U: self.kill_line,
             0: lambda : None
