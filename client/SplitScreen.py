@@ -134,6 +134,8 @@ class SplitScreen(object):
         self.adjust_after_deletion()
 
     def record_history(self, cmd):
+        if cmd == "":
+            return
         self.history[self.hist_pos] = cmd
         self.hist_pos += 1
         if self.cur_hist_depth < self.HIST_DEPTH:
