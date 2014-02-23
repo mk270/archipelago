@@ -139,6 +139,9 @@ class SplitScreen(object):
         self.cmd = s
         self.pos = len(s)
 
+    def kill_line(self):
+        self.replace_line("")
+
     def do_history(self, d):
         if self.password_mode:
             return
@@ -147,7 +150,7 @@ class SplitScreen(object):
         self.replace_line(self.history[self.hist_pos])
 
     def noop(self):
-        self.emit_line("not implemented")
+        self.emit_line("[Not implemented]")
 
     def history_back(self):
         self.do_history(-1)
@@ -156,12 +159,14 @@ class SplitScreen(object):
         self.do_history(1)
 
     def handle_input(self):
+        CTRL_U = 21
         handlers = {
             curses.KEY_UP: self.history_back,
             curses.KEY_DOWN: self.history_fwd,
             curses.KEY_LEFT: self.noop,
             curses.KEY_RIGHT: self.noop,
-            curses.KEY_BACKSPACE: self.backspace
+            curses.KEY_BACKSPACE: self.backspace,
+            CTRL_U: self.kill_line
             }
 
         ch = self.scr.getch() ## FIXME -1?
@@ -178,6 +183,8 @@ class SplitScreen(object):
             self.send_line()
         elif ch in handlers:
             handlers[ch]()
+        else:
+            self.emit_line("[Key uncaught: %d]" % ch)
 
         #self.scr.addstr(5,5,str(ch))
         self.scr.refresh()
