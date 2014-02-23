@@ -106,15 +106,15 @@ class SplitScreen(object):
         if self.pos < len(self.cmd):
             self.scr.addstr(self.bottom_line, len(self.prompt) + self.pos, 
                             self.cmd[self.pos:])
-            self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
+            self.place_cursor()
 
     def adjust_after_deletion(self):
-        self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
+        self.place_cursor()
         if self.pos < len(self.cmd):
             self.scr.addstr(self.bottom_line, len(self.prompt) + self.pos, 
                             self.cmd[self.pos:])
             self.scr.clrtoeol()
-            self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
+            self.place_cursor()
         else:
             self.scr.clrtoeol()
 
@@ -186,20 +186,20 @@ class SplitScreen(object):
     def go_left(self):
         if self.pos > 0:
             self.pos -= 1
-            self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
+            self.place_cursor()
 
     def go_right(self):
         if self.pos < len(self.cmd):
             self.pos += 1
-            self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
+            self.place_cursor()
 
     def go_to_first(self):
         self.pos = 0
-        self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
+        self.place_cursor()
 
     def go_to_last(self):
         self.pos = len(self.cmd)
-        self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
+        self.place_cursor()
 
     def handle_input(self):
         CTRL_A = 1
