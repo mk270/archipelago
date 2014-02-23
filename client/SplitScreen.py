@@ -258,6 +258,8 @@ class SplitScreen(object):
         self.server_link.multi.setOnTimeout(lambda : self.throb())
 
     def set_prompt(self, new_prompt):
+        if self.prompt == new_prompt:
+            return
         self.prompt = new_prompt
         self.write_prompt()
         self.replace_line(self.cmd)
