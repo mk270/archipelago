@@ -173,13 +173,17 @@ class SplitScreen(object):
             self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
 
     def handle_input(self):
+        # todo: ctrl-k, ctrl-d, make backspace work mid-word
         CTRL_U = 21
+        CTRL_D = 4
+        CTRL_K = 11
         handlers = {
             curses.KEY_UP: self.history_back,
             curses.KEY_DOWN: self.history_fwd,
             curses.KEY_LEFT: self.go_left,
             curses.KEY_RIGHT: self.go_right,
             curses.KEY_BACKSPACE: self.backspace,
+            
             CTRL_U: self.kill_line,
             0: lambda : None
             }
