@@ -111,10 +111,16 @@ class SplitScreen(object):
     def backspace(self):
         if self.pos == 0:
             return
-        self.cmd = self.cmd[:-1]
+        self.cmd = self.cmd[:self.pos - 1] + self.cmd[self.pos:]
         self.pos -= 1
         self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
-        self.scr.clrtoeol()
+        if self.pos < len(self.cmd):
+            self.scr.addstr(self.bottom_line, len(self.prompt) + self.pos, 
+                            self.cmd[self.pos:])
+            self.scr.clrtoeol()
+            self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
+        else:
+            self.scr.clrtoeol()
 
     def record_history(self, cmd):
         self.history[self.hist_pos] = cmd
