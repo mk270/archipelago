@@ -163,6 +163,10 @@ class SplitScreen(object):
     def kill_line(self):
         self.replace_line("")
 
+    def kill_to_end(self):
+        self.cmd = self.cmd[:self.pos]
+        self.scr.clrtoeol()
+
     def do_history(self, d):
         if self.password_mode:
             return
@@ -190,7 +194,6 @@ class SplitScreen(object):
             self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
 
     def handle_input(self):
-        # todo: ctrl-k, ctrl-d, make backspace work mid-word
         CTRL_U = 21
         CTRL_D = 4
         CTRL_K = 11
@@ -202,6 +205,7 @@ class SplitScreen(object):
             curses.KEY_BACKSPACE: self.backspace,
             CTRL_D: self.delete,
             CTRL_U: self.kill_line,
+            CTRL_K: self.kill_to_end,
             0: lambda : None
             }
 
