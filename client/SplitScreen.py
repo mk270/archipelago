@@ -166,7 +166,8 @@ class SplitScreen(object):
             curses.KEY_LEFT: self.noop,
             curses.KEY_RIGHT: self.noop,
             curses.KEY_BACKSPACE: self.backspace,
-            CTRL_U: self.kill_line
+            CTRL_U: self.kill_line,
+            0: lambda _: None
             }
 
         ch = self.scr.getch() ## FIXME -1?
