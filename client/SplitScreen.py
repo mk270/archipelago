@@ -193,7 +193,17 @@ class SplitScreen(object):
             self.pos += 1
             self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
 
+    def go_to_first(self):
+        self.pos = 0
+        self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
+
+    def go_to_last(self):
+        self.pos = len(self.cmd)
+        self.scr.move(self.bottom_line, len(self.prompt) + self.pos)
+
     def handle_input(self):
+        CTRL_A = 1
+        CTRL_E = 5
         CTRL_U = 21
         CTRL_D = 4
         CTRL_K = 11
@@ -206,6 +216,8 @@ class SplitScreen(object):
             CTRL_D: self.delete,
             CTRL_U: self.kill_line,
             CTRL_K: self.kill_to_end,
+            CTRL_A: self.go_to_first,
+            CTRL_E: self.go_to_last,
             0: lambda : None
             }
 
