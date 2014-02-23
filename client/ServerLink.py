@@ -32,7 +32,7 @@ class ServerLink(Socket):
             self.ip_address = ip_address
             
             try:
-                self.hostname, _ = socket.gethostbyaddr(ip_address)
+                self.hostname = socket.gethostbyaddr(ip_address)[0]
             except:
                 self.hostname = ip_address
         else:
