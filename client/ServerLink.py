@@ -19,11 +19,14 @@ class ServerLink(Socket):
         super(ServerLink, self).__init__(sock, address)
         self.ss = ss
         self.ss.set_sock(self)
-        self.set_hostname()
-        self.connection_failed = self.connect(address)
-        self.setNonBlocking()
+        self.basic_setup()
         self.delim = self.get_delim()
         self.setup()
+
+    def basic_setup(self):
+        self.set_hostname()
+        self.connection_failed = self.connect(self.address)
+        self.setNonBlocking()
 
     def set_hostname(self):
         if len(sys.argv) == 2:
