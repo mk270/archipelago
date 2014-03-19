@@ -849,12 +849,12 @@ struct
 			| true  -> (search mo f) @ (search (Tree.parent mo) f)
 
 	let search mo f ~name ~and_parent =
-		let f = (fun i -> (f i) & (Props.match_name name i))
+		let f = (fun i -> (f i) && (Props.match_name name i))
 		in
 			search mo f ~and_parent
 				
 	let search mo f ~ty ~name ~and_parent =
-		let f = (fun i -> (f i) & (mudobj_ty_match i ty))
+		let f = (fun i -> (f i) && (mudobj_ty_match i ty))
 		in
 			search mo f ~name ~and_parent
 				
