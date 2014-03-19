@@ -9,7 +9,7 @@
   (at your option) any later version.
 *)
 
-open Utils
+open Utils.Ext
 open Socket
 open Model
 open Printf
@@ -48,7 +48,7 @@ let exits ~actor =
 			(match links with
 				| [] -> "You don't see any exits!"
 				| [one] -> sprintf "The only exit is %s." one
-				| _ -> sprintf "Exits lead %s." (Utils.comma_sep links))
+				| _ -> sprintf "Exits lead %s." (Utils.Ext.comma_sep links))
 
 let look ~actor =
 	let parent = Tree.parent actor in
@@ -302,10 +302,10 @@ let whereis ~actor ~word =
 		let free_ones, unfree_ones = List.partition Model.Tree.free results in
 		let free_ones = List.map Tree.parent free_ones in
 		let unfree_ones = List.map Tree.parent unfree_ones in
-			free_tally (Utils.tally free_ones);
+			free_tally (Utils.Ext.tally free_ones);
 			match wizmode with
 				| false -> unfree_tally_non_wiz (List.length unfree_ones)
-				| true -> unfree_tally (Utils.tally unfree_ones)
+				| true -> unfree_tally (Utils.Ext.tally unfree_ones)
 
 let locate ~actor ~word =
 	emitl actor ("Locations sounding like `" ^ word ^ "':");

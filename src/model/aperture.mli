@@ -13,6 +13,6 @@
 type ap_message = [ `Shut | `Open | `Lock | `Unlock | `Trap | `Deactivate ]
 type aperture_state = Open | Closed | Locked | Trapped
 
-type aperture_fsm = (string, ap_message, aperture_state) Fsm.fsm
+type aperture_fsm = (string, ap_message, aperture_state) Utils.Fsm.fsm
 
 val ap_inp_handler : (aperture_state * ap_message) -> (aperture_state * string)

@@ -161,11 +161,11 @@ let exec verb ~actor line =
 					  (match words' with
 						   | [] -> failwith "no worlds left to parse"
 						   | [hd] -> 
-								 (if Utils.initial_match hd s'
+								 (if Utils.Ext.initial_match hd s'
 								  then (None, "")
 								  else raise Constant_not_found)
 						   | hd :: tl ->
-								 (if Utils.initial_match hd s'
+								 (if Utils.Ext.initial_match hd s'
 								  then (None, List.hd tl)
 								  else raise Constant_not_found)
 					  )

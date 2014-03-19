@@ -12,7 +12,7 @@
 
 open Direction
 open Verbs
-open Utils
+open Utils.Ext
 
 open Parser
 open Verb_list

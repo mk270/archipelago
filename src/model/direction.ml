@@ -45,7 +45,7 @@ let int_of_direction dir = dir.dir_code_number
 let match_direction s =
 	let names = List.map (fun d -> (d, string_of_direction d)) !compass in
 	let matches = List.filter (
-		fun name -> Utils.initial_match s (snd name)
+		fun name -> Utils.Ext.initial_match s (snd name)
 	) names in
 		match matches with
 			| [] -> raise Not_found

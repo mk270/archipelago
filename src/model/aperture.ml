@@ -14,7 +14,7 @@ type aperture_state = Open | Closed | Locked | Trapped
 (* FIXME: no need for polymorphic variants here *)
 type ap_message = [ `Shut | `Open | `Lock | `Unlock | `Trap | `Deactivate ]
 
-type aperture_fsm = (string, ap_message, aperture_state) Fsm.fsm
+type aperture_fsm = (string, ap_message, aperture_state) Utils.Fsm.fsm
 
 exception Aperture_already of aperture_state
 exception Trap_set_off

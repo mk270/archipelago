@@ -376,7 +376,7 @@ struct
 			wrap_entity ~mo
 
 	let create_aperture ap_state accessor =
-		let ap_fsm = Fsm.create ap_state ap_inp_handler in
+		let ap_fsm = Utils.Fsm.create ap_state ap_inp_handler in
 			{ ap_fsm = ap_fsm;
 			  ap_key = accessor; }
 				
@@ -495,12 +495,12 @@ end = struct
 	let change_item_aperture_state mo state_change =
 		let a = aperture_from_mudobject mo in
 		let aps = a.ap_fsm in
-			Fsm.send aps state_change
+			Utils.Fsm.send aps state_change
 
 	let get_aperture_state mo =
 		let a = aperture_from_mudobject mo in
 		let ap_fsm = a.ap_fsm in
-			ap_fsm.Fsm.fsm_state
+			ap_fsm.Utils.Fsm.fsm_state
 
 	let get_aperture_accessor mo =
 		let a = aperture_from_mudobject mo in
@@ -516,7 +516,7 @@ end = struct
 	let match_name n mo =
 		match n with 
 			| None -> true
-			| Some nom -> Utils.initial_match nom (obj_name mo.mo_name)
+			| Some nom -> Utils.Ext.initial_match nom (obj_name mo.mo_name)
 (*			| Some nom -> obj_name mo.mo_name = nom *)
 
 	let match_loc_code lc mo =
@@ -1177,7 +1177,7 @@ let destroy mo =
 	let id = Props.get_id mo in
 		Hashtbl.remove msg_queues id;
 		Tree.remove_from ~parent:(Tree.parent mo) mo; (* FIXME *)
-		universe := Utils.remove mo !universe
+		universe := Utils.Ext.remove mo !universe
 
 let destroy_all () =
 	let destroy i =
@@ -1328,7 +1328,7 @@ end = struct
 		(* FIXME: either already fighting; wrong types, etc *)
 
 		let state = Combat_state.create_combatant_pair () in
-		let combi = Fsm.create state Combat_state.combat_input_handler in 
+		let combi = Utils.Fsm.create state Combat_state.combat_input_handler in 
 
 		let setup me him role =	
 			let combichrist = {
@@ -1356,7 +1356,7 @@ end = struct
 		let ft = get_fight mo in
 		let role = ft.ft_combat_role in
 		let ci = ft.ft_combat_info in
-		let results = Fsm.send ci.cmbi_state msg in
+		let results = Utils.Fsm.send ci.cmbi_state msg in
 		let my_response, his_response =
 			match role with
 				| Combat_state.Initiator ->

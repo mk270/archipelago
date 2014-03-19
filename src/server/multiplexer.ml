@@ -10,7 +10,7 @@
 *)
 
 
-open Utils
+open Utils.Ext
 open Unix
 open Socket
 
@@ -87,7 +87,7 @@ let handle_read m fd =
 
 let run_callback thunk =
 	try thunk ()
-	with e -> Utils.guard_exception e
+	with e -> Utils.Ext.guard_exception e
 
 let pump m =
 	let handle_read' = handle_read m

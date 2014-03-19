@@ -126,7 +126,7 @@ let pursue_bindee ~actor ~bindee ~state ~my_parent ~his_parent =
 		then move_to ~actor ~my_parent ~dst:his_parent
 		else match dests with
 			| [] -> ()
-			| _ -> let dst = Utils.random_list_member dests in
+			| _ -> let dst = Utils.Ext.random_list_member dests in
 					   move_to ~actor ~my_parent ~dst
 
 let interact_with_bindee ~actor ~state =

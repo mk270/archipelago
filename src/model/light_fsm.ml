@@ -17,7 +17,7 @@ type light_msg =
 	| SwitchOff
 	| BlowOut
 
-type light_fsm = (unit, light_msg, light) Fsm.fsm
+type light_fsm = (unit, light_msg, light) Utils.Fsm.fsm
 
 exception Already_light of light
 exception Invalid_light_change
@@ -40,4 +40,4 @@ let light_handler (state, input) =
 	(light_handler (state, input), ())
 
 let create state =
-	Fsm.create state light_handler
+	Utils.Fsm.create state light_handler
