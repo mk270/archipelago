@@ -16,3 +16,7 @@ META
 _tags
 myocamlbuild.ml
 setup.ml
+setup.data
+setup.log
+*.mldylib
+*.mlpack
