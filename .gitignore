@@ -13,3 +13,6 @@ _build/
 META
 *.byte
 *.native
+_tags
+myocamlbuild.ml
+setup.ml
