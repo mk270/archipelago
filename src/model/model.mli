@@ -21,12 +21,12 @@ and
 	aperture
 and
 	fight
-and
-	cause_of_death =
+
+type cause_of_death =
 	| Killed_by of mudobject
 	| Died_of of string
-and
-	event =
+
+type event =
 	| Logon of mudobject
 	| Logout of mudobject
 	| Pickup of mudobject * mudobject
