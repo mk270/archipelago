@@ -11,7 +11,8 @@ Plugins:     META (0.3)
 Library utils
   Path:       src/utils
   BuildTools: ocamlbuild
-  Modules:    Fsm, Utils
+  Modules:    Fsm, Ext
+  Pack:       true
   BuildDepends: str
 
 Library model

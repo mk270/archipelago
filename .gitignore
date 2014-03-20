@@ -17,3 +17,7 @@ myocamlbuild.ml
 _tags
 setup.ml
 db/island.db
+setup.data
+setup.log
+*.mldylib
+*.mlpack

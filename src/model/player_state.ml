@@ -38,7 +38,7 @@ type mode_msg =
 	| StartJury
 	| EndJury
 
-type mode_fsm = (unit, mode_msg, mode) Fsm.fsm
+type mode_fsm = (unit, mode_msg, mode) Utils.Fsm.fsm
 
 exception Playermode_already of mode
 exception Invalid_modechange
@@ -79,7 +79,7 @@ let mode_handler (state, input) =
 let mode_handler (state, input) = (mode_handler (state, input), ())
 
 let create () =
-	let new_mode = Fsm.create default_mode mode_handler in
+	let new_mode = Utils.Fsm.create default_mode mode_handler in
 		{
 			player_mode = new_mode;
 			invisible = false;
@@ -93,14 +93,14 @@ let create () =
 (* currently this stuff totally bypasses the fsm machinery *)
 
 let in_wizmode ps =
-	match ps.player_mode.Fsm.fsm_state with
+	match ps.player_mode.Utils.Fsm.fsm_state with
 		| NonQuest m -> m.wiz_mode = true
 		| _ -> false
 
 let in_nightmode ps = ps.night_mode
 
 let in_questmode ps =
-	match ps.player_mode.Fsm.fsm_state with
+	match ps.player_mode.Utils.Fsm.fsm_state with
 		| Quest _ -> true
 		| _ -> false
 
@@ -111,12 +111,12 @@ let set_wizmode ps state =
 		| NonQuest m -> ps.player_mode.Fsm.fsm_state <- NonQuest { m with wiz_mode = state }
 						  *)
 let set_wizmode ps = function
-	| true -> Fsm.send ps.player_mode EnterWizmode
-	| false -> Fsm.send ps.player_mode ExitWizmode
+	| true -> Utils.Fsm.send ps.player_mode EnterWizmode
+	| false -> Utils.Fsm.send ps.player_mode ExitWizmode
 
 
 let get_prompt ps =
-	match ps.player_mode.Fsm.fsm_state with
+	match ps.player_mode.Utils.Fsm.fsm_state with
 		| NonQuest nq -> (
 			  match nq.wiz_mode with
 				  | true -> "* "
@@ -125,10 +125,10 @@ let get_prompt ps =
 		| Quest _ -> "# "			  
 
 let set_quest ps quest =
-	Fsm.send ps.player_mode (StartQuest quest)
+	Utils.Fsm.send ps.player_mode (StartQuest quest)
 
 let unset_quest ps =
-	Fsm.send ps.player_mode EndQuest
+	Utils.Fsm.send ps.player_mode EndQuest
 
 let set_dead ps state =
 	ps.dead <- state

@@ -128,12 +128,12 @@ let set_pitted props =
 let is_lit props =
 	match props.op_light with
 		| None -> false
-		| Some l -> Light.is_on l.Fsm.fsm_state
+		| Some l -> Light.is_on l.Utils.Fsm.fsm_state
 
 let light_change props msg =
 	match props.op_light with
 		| None -> raise Not_a_light
-		| Some l -> Fsm.send l msg
+		| Some l -> Utils.Fsm.send l msg
 
 let vehicularity props =
 	props.op_vehicularity

@@ -80,7 +80,7 @@ type combat_message =
 	| Timeout
 
 type combat_fsm = 
-		(combat_round_result_pair, combat_message, combatant_pair) Fsm.fsm
+		(combat_round_result_pair, combat_message, combatant_pair) Utils.Fsm.fsm
 
 exception Already_moved
 exception Invalid_combat_move

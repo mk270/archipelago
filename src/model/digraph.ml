@@ -9,7 +9,7 @@
   (at your option) any later version.
 *)
 
-open Utils
+open Utils.Ext
 
 type 'a digraph = {
   thing: 'a;

@@ -49,7 +49,7 @@ let stop' dmn =
 
 let stop dmn =
 	stop' dmn;
-	daemons := Utils.remove dmn !daemons
+	daemons := Utils.Ext.remove dmn !daemons
 
 let fini () =
 	List.iter stop' !daemons;
