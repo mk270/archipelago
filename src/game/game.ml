@@ -35,7 +35,7 @@ let add_current_player mo =
 
 let remove_current_player mo =
 	assert (List.memq mo !player_list);
-	player_list := Utils.remove mo !player_list
+	player_list := Utils.Ext.remove mo !player_list
 
 let output_iter f =
 	let f' (mo, msg) = f mo msg in
