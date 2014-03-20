@@ -1,7 +1,7 @@
 (*
   Archipelago, a multi-user dungeon (MUD) server, by Martin Keegan
 
-  Copyright (C) 2009-2012  Martin Keegan
+  Copyright (C) 2009-2013  Martin Keegan
 
   This programme is free software; you may redistribute and/or modify
   it under the terms of the GNU Affero General Public Licence as published by
@@ -9,7 +9,7 @@
   (at your option) any later version.
 *)
 
-open Container
+open Node
 open Direction
 open Name
 open Weather
@@ -22,8 +22,23 @@ open Aperture
    globally, which, now that I've stated it, sounds less like a bad idea 
 *)
 
+type graph_label =
+	| Exit
+	| Contained_in
+	| Unlocked_by
+	| Scenery
+	| Has_portal
+	| Requires_obj
 
-type mo_type = MO_Room | MO_Item | MO_Player | MO_Monster | MO_Portal
+let graph_type = function
+	| Exit -> Graph
+	| Contained_in -> Tree
+	| Unlocked_by -> Tree
+	| Scenery -> Graph
+	| Has_portal -> Tree
+	| Requires_obj -> Tree
+
+type mo_type = MO_Room | MO_Item | MO_Player | MO_Monster | MO_Portal | MO_Link
 
 type local_weather = {
 	lw_weather : Weather.weather;
@@ -37,6 +52,7 @@ type entity =
 	| Player
 	| Monster
 	| Portal
+	| Link
 
 type loc_info =
 		{ 
@@ -62,12 +78,11 @@ type player =
 type mudobject =
 		{
 			mo_entity : entity;
-			mutable mo_container : mudobject container option;
+			mutable mo_neighbours : (mudobject, graph_label) node option;
 			mo_name : name;
 			mo_id : int;
 			mo_sex : Sex.sex ;
 			mo_description : string option;
-			mo_exits : exits option;
 			mo_monster_actions : bool option;
 			mo_item_properties : Item_prop.t option;
 			mutable mo_aperture : aperture option;
@@ -78,6 +93,7 @@ type mudobject =
 			mutable mo_bound_to : mudobject option;
 			mutable mo_monster_active : bool;
 			mutable mo_vehicle : mudobject option;
+			mo_link_direction : direction option;
 		}
 and
 	aperture = 
@@ -85,19 +101,6 @@ and
 			ap_fsm : aperture_fsm;
 			ap_key : mudobject option;
 		}
-and
-	link =
-		{
-			lnk_destination : mudobject;
-			lnk_portal : mudobject option;
-			lnk_required_item : mudobject option;
-			lnk_visible : bool;
-			lnk_counter : link option;
-			lnk_exit_msg : string option;
-			lnk_enter_msg : string option;
-		}
-and
-	exits = (direction, link) Hashtbl.t
 and
 	fight =
 		{
@@ -148,13 +151,6 @@ type event =
 	| CombatResult of Combat_state.combat_round_result
 	| Death of mudobject * cause_of_death
 
-(* edge represents an exit, but cannot be called exit simply because
-   exit is mistaken for a reserved word by my editor *)
-
-type edge =
-		{ exit_direction : direction;
-		  exit_link : link }
-
 exception No_exit
 exception No_aperture
 exception Portal_not_open of mudobject
@@ -173,6 +169,7 @@ exception Already_bound
 exception Not_bound
 exception Not_free
 exception Not_present
+exception Link_missing_direction
 
 let universe = ref []
 let global_msg_queue = Queue.create ()
@@ -191,12 +188,13 @@ let assert_entity_type ty mo =
 			| MO_Player, Player -> ()
 			| MO_Monster, Monster -> ()
 			| MO_Portal, Portal -> ()
+			| MO_Link, Link -> ()
 			| _ -> assert false
 
 let exits_of_mudobject mo = 
-	match mo.mo_exits with
-		| None -> raise Not_a_room
-		| Some ex -> ex
+	match mo.mo_neighbours with
+	| Some n -> List.map Node.contained (Node.destinations_of n Exit)
+	| None -> assert false
 
 let player_of_mudobject mo =
 	match mo.mo_player with
@@ -208,10 +206,10 @@ let aperture_from_mudobject i =
 		| Some a -> a
 		| None -> raise No_aperture
 
-let container_of_mudobject mo = 
-	match mo.mo_container with
+let node_of_mudobject mo =
+	match mo.mo_neighbours with
 		| Some c -> c
-		| None -> failwith "Uninitialised object: no container!"
+		| None -> failwith "Uninitialised object: no node!"
 
 let mudobj_ty_match mo ty =
 	match ty, mo.mo_entity with
@@ -230,6 +228,7 @@ let string_of_entity mo =
 		| Monster -> "monster"
 		| Room -> "location"
 		| Portal -> "door"
+		| Link -> "link"
 
 let string_of_apstate = function
 	| Open -> "open"
@@ -275,7 +274,6 @@ let unbuffer_dirty_mudobjects () =
 let quiescent () =
 	(0 = List.length !dirty) && (Queue.is_empty global_msg_queue)
 
-let direction_in_exit ex = ex.exit_direction
 
 module Create : sig
 	val create_room : name -> desc : string -> loc_code : string -> terrain : string -> mudobject
@@ -285,6 +283,9 @@ module Create : sig
 	val create_monster : name -> sex : Sex.sex -> mudobject
 	val create_portal : name -> aperture_state -> mudobject
 	val create_aperture : aperture_state -> mudobject option -> aperture
+	val create_link : (mudobject, graph_label) node -> direction -> 
+		(mudobject, graph_label) node option -> 
+		(mudobject, graph_label) node option -> mudobject
 
 end = 
 struct
@@ -296,12 +297,11 @@ struct
 
 	let entity_template = {
 		mo_entity = Room;
-		mo_container = None;
+		mo_neighbours = None;
 		mo_name = ("Missing name!", NoAdam, Singular);
 		mo_id = -1;
 		mo_sex = Sex.Neuter;
 		mo_description = None;
-		mo_exits = None;
 		mo_monster_actions = None;
 		mo_item_properties = None;
 		mo_aperture = None;
@@ -312,13 +312,14 @@ struct
 		mo_bound_to = None;
 		mo_monster_active = false;
 		mo_vehicle = None;
+		mo_link_direction = None;
 	}
 
 	let wrap_entity ~mo =
 		let id = next_id () in
 		let mo = { mo with mo_id = id; } in
-		let c = create mo in
-			mo.mo_container <- Some c;
+		let c = create graph_type mo in
+			mo.mo_neighbours <- Some c;
 			universe := mo :: !universe;
 			mo
 
@@ -333,7 +334,6 @@ struct
 		} in
 		let mo = { entity_template with
 					   mo_description = Some desc;
-					   mo_exits = Some (Hashtbl.create 5);
 					   mo_entity = Room;
 					   mo_name = name;
 					   mo_loc_info = Some loci;
@@ -387,6 +387,33 @@ struct
 					   mo_aperture = Some (create_aperture ap_state None);
 				 } in
 			wrap_entity ~mo
+
+	let create_link dst dir portal obj_required =
+		let dst_mo = Node.contained dst in
+		let vague_name = Name.vague dst_mo.mo_name in
+		let ty = string_of_entity dst_mo in
+		Printf.printf "create_link: %d (%s:%s)\n" (dst_mo.mo_id) ty vague_name;
+		let mo = { entity_template with
+			mo_entity = Link;
+			mo_name = ("link", Name.Indefinite, Name.Singular);
+			mo_link_direction = Some dir;
+		} in
+		let ent = wrap_entity ~mo in
+		let src = node_of_mudobject ent in
+			assert_entity_type MO_Room (Node.contained dst);
+			Node.insert_into dst src Exit;
+
+			let add_optional_link dst' ty entity_type =
+				(match dst' with
+					| None -> ()
+					| Some d ->
+						assert_entity_type entity_type (Node.contained d);
+						Node.insert_into d src ty)
+			in
+				List.iter (fun (dst', ty, ety) -> add_optional_link dst' ty ety)
+					[ (portal, Has_portal, MO_Portal);
+					  (obj_required, Requires_obj, MO_Item) ];
+			ent
 
 end
 
@@ -705,7 +732,8 @@ let unbuffer_mudobject_events mo =
 		Queue.transfer q buf;
 		buf
 
-
+type edge = { exit_direction : direction ;
+			  exit_link : mudobject }
 
 module LinkSet = Set.Make (
 	struct
@@ -739,8 +767,8 @@ module Tree : sig
 end = struct
 
 	let map_children mo f =
-		let c = container_of_mudobject mo in
-			List.map (fun i -> f (contained i)) (Container.children c)
+		let c = node_of_mudobject mo in
+			List.map (fun i -> f (contained i)) (Node.sources_of c Contained_in)
 
 	let iter_children mo f =
 		ignore(map_children mo (fun i -> ignore(f i)))
@@ -749,10 +777,11 @@ end = struct
 		map_children mo (fun x -> x)
 
 	let parent mo =
-		let c = container_of_mudobject mo in
-			match Container.parent c with
-				| None -> raise Not_found
-				| Some p -> contained p
+		let c = node_of_mudobject mo in
+			match (Node.destinations_of c Contained_in) with
+				| [] -> raise Not_found
+				| [p] -> contained p
+				| _ -> assert false
 (*
 	let stop_using_object parent child =
 		try let pl = player_of_mudobject parent in
@@ -765,14 +794,14 @@ end = struct
 		with Not_a_player -> ()
 *)
 	let insert_into ~recipient child =
-		let p = container_of_mudobject recipient in
-		let c = container_of_mudobject child in
-			Container.insert_into p c
+		let p = node_of_mudobject recipient in
+		let c = node_of_mudobject child in
+			Node.insert_into p c Contained_in
 				
 	let remove_from ~parent child =
-		let p = container_of_mudobject parent in
-		let c = container_of_mudobject child in
-			Container.remove_from p c
+		let p = node_of_mudobject parent in
+		let c = node_of_mudobject child in
+			Node.remove_from p c Contained_in
 
 	let free mo =
 		match mo.mo_entity with
@@ -958,50 +987,105 @@ struct
 
 end
 
+let direction_in_exit ex = ex.exit_direction
+
 module Link =
 struct
 
-	let add_link src dst dir door req_item =
+	let direction_of_exit mo =
+		match mo.mo_link_direction with
+		| Some dir -> dir
+		| None -> raise Link_missing_direction
+
+	let destination_of_exit mo =
+		let n = node_of_mudobject mo in
+		match (Node.destinations_of n Exit) with
+			| [] -> raise No_exit
+			| [hd] -> Node.contained hd
+			| _ -> failwith "multiple destinations from exit"
+
+	let required_item_of_exit mo =
+		let n = node_of_mudobject mo in
+		match (Node.destinations_of n Requires_obj) with
+			| [] -> None
+			| [hd] -> Some (Node.contained hd)
+			| _ -> failwith "multiple req objs in exit"
+
+	let portal_of_exit mo =
+		let n = node_of_mudobject mo in
+		match (Node.destinations_of n Has_portal) with
+			| [] -> None
+			| [hd] -> Some (Node.contained hd)
+			| _ -> failwith "multiple portals in exit"
+
+	let edge_of_exit mo =
+		let dir = direction_of_exit mo in
+			(dir, mo)
+
+	let exit_by_dir mo dir =
+		let all_exits = exits_of_mudobject mo in
+
+			Printf.printf "#exits in exits by dir: %d\n" (List.length all_exits);
+
+		let right_dir ex = (dir = direction_of_exit ex) in
+		let exits = List.filter right_dir all_exits in
+			match exits with
+			| [] -> raise Not_found
+			| [hd] -> hd
+			| _ -> failwith "Too many exits in same dir"
+
+	let add_link (src : mudobject) (dst :mudobject) (dir : direction) door req_item =
 		let src_exits = exits_of_mudobject src in
 		let dst_exits = exits_of_mudobject dst in
+		let src_dirs = List.map direction_of_exit src_exits in
+		let dst_mo = node_of_mudobject dst in
 			ignore(dst_exits); (* force room *)
-			assert (not (Hashtbl.mem src_exits dir));
+			assert (not (List.mem dir src_dirs));
+		let door_mo =
 			(match door with 
-				 | Some d -> assert_entity_type MO_Portal d
-				 | None -> ());
+				 | Some d -> 
+					 assert_entity_type MO_Portal d;
+					 Some (node_of_mudobject d)
+				 | None -> None) in
+		let req_item_mo =
 			(match req_item with
 				 | Some d -> 
-(*					   Printf.printf "ItReq: [%s]\n" (Props.get_vague_name d);
-					   flush_all ();*)
-					   assert_entity_type MO_Item d
-				 | None -> ());
-			let l = {
-				lnk_destination = dst;
-				lnk_portal = door;
-				lnk_required_item = req_item;
-				lnk_visible = true;
-				lnk_counter = None;
-				lnk_exit_msg = None;
-				lnk_enter_msg = None;
-			} in
-				Hashtbl.replace src_exits dir l
-			
-	let remove_link mo dir =
-		let src_exits = exits_of_mudobject mo in
-			assert (Hashtbl.mem src_exits dir);
-			Hashtbl.remove src_exits dir
-	
-	let dest_in_link l =
-		l.lnk_destination
+					 assert_entity_type MO_Item d;
+					 Some (node_of_mudobject d)
+				 | None -> None) in
+		let l = Create.create_link dst_mo dir door_mo req_item_mo in
+		let n = node_of_mudobject l in
+		let src_mo = node_of_mudobject src in
+			Node.insert_into n src_mo Exit
 
-	let portal_in_link l =
-		l.lnk_portal
+	let remove_link mo dir =
+		let src = node_of_mudobject mo in
+		let src_exits = exits_of_mudobject mo in
+		let right_dir ex = (dir = direction_of_exit ex) in
+			match (List.filter right_dir src_exits) with
+				| [] -> failwith "exit not found"
+				| [hd] -> 
+					let dst = node_of_mudobject hd in
+						assert_entity_type MO_Link hd;
+						Node.remove_from dst src Exit
+				| _ -> failwith "two exits in same direction?"
+	(*			assert (List.mem dir src_dirs);*)
+
+	let portal_in_link mo =
+		let n = node_of_mudobject mo in
+			match (Node.destinations_of n Has_portal) with
+				| [] -> None
+				| [hd] -> Some (Node.contained hd)
+				| _ -> assert false
 
 	let get_all_links mo =
-		let exits = exits_of_mudobject mo in
-			Hashtbl.fold (
-				fun x y a -> LinkSet.add { exit_direction = x; exit_link = y } a
-			) exits LinkSet.empty
+		let exits = List.map edge_of_exit (exits_of_mudobject mo) in
+			List.fold_left (
+				fun a (x, y) -> LinkSet.add { 
+					exit_direction = x; 
+					exit_link = y 
+				} a
+			) LinkSet.empty exits
 				
 	let get_links ~with_portals mo =
 		fst (LinkSet.partition (
@@ -1078,11 +1162,12 @@ struct
 
 	(* FIXME: Event to rooms being entered and left *)
 	let move_dir mo dir =
-		let exits = exits_of_mudobject (Tree.parent mo) in
-		let l = (try Hashtbl.find exits dir
+		let src = Tree.parent mo in
+		let l = (try exit_by_dir src dir
 				 with Not_found -> raise No_exit)
 		in
-		let dst_vehicularity = Vehicle.get_required_vehicle l.lnk_destination in
+		let dst = destination_of_exit l in
+		let dst_vehicularity = Vehicle.get_required_vehicle dst in
 		let current = Tree.parent mo in
 		let cur_vehicularity = Vehicle.get_required_vehicle current in
 		let pl_vehicle = 
@@ -1090,26 +1175,28 @@ struct
 				| None -> None
 				| Some vh -> Vehicle.get_item_vehicularity vh
 		in
-			(match l.lnk_required_item with
+			(match required_item_of_exit l with
 				 | Some o -> 
 					   if mo != Tree.parent o
 					   then raise Item_required_for_passage
 				 | None -> ());
 			if vehicular_travel_permitted ~pl_vehicle ~dst_vehicularity ~cur_vehicularity
 			then 
-				(if portal_passable l.lnk_portal
-				 then 
-						(
-							let src = Tree.parent mo in
-							let dst = l.lnk_destination in
-								Printf.printf "src: %d; dst %d\n" (Props.get_id src) (Props.get_id dst); flush_all ();
+				let portal = portal_of_exit l in
+					(if portal_passable portal
+					 then 
+							(
+								Printf.printf "src: %d; dst %d\n" 
+									(Props.get_id src) 
+									(Props.get_id dst); 
+								flush_all ();
 								post_mudobject_event src (Depart (mo, dir));
 								Tree.insert_into ~recipient:dst mo;
 								post_mudobject_event dst (Arrive (mo, src))
-						)
-				 else 
-					 let ptl = portal_of_some l.lnk_portal in
-						 raise (Portal_not_open ptl))
+							)
+					 else 
+							let ptl = portal_of_some portal in
+								raise (Portal_not_open ptl))
 			else raise Vehicle_required
 
 	(* FIXME: presumably this should be somewhere else *)
@@ -1120,20 +1207,21 @@ struct
 		| _ -> assert false
 
 	let reachable ~src ~dst =
+		let can_reach = fun a v -> (dst == destination_of_exit v) || a in
 		let exits = exits_of_mudobject src in
-			Hashtbl.fold (fun _ v a -> (dst == dest_in_link v) || a) exits false
+			List.fold_left can_reach false exits
 
 	let connected ~src ~dst =
 		reachable ~src ~dst && reachable ~dst ~src
 
 	let neighbours' f mo =
 		let exits = exits_of_mudobject mo in
-		let exits' = Hashtbl.fold (
-			fun _ v a -> let dst = dest_in_link v in
+		let exits' = List.fold_left (
+			fun a v -> let dst = destination_of_exit v in
 							 if f ~src:mo ~dst
 							 then MudobjectSet.add dst a
 							 else a
-		) exits MudobjectSet.empty in
+		) MudobjectSet.empty exits in
 			MudobjectSet.elements exits'
 
 	let neighbours mo = 
@@ -1143,31 +1231,35 @@ struct
 		neighbours' (fun ~src ~dst -> reachable ~src ~dst) mo
 
 	let dir_to_destination ~src ~dst =
-		let directions = Hashtbl.fold (
-			fun dir dest a ->
-				if dst == dest_in_link dest
-				then dir :: a
-				else a
-		) (exits_of_mudobject src) [] in
-			List.hd directions (* will raise Not_found appropriately *)
+		let src' = node_of_mudobject src in
+		let exits = Node.destinations_of src' Exit in
+		let exits' = List.filter (fun ex -> dst == Node.contained ex) exits in
+			match exits' with
+				| [] -> raise Not_found
+				| [hd]
+				| hd :: _ -> direction_of_exit (Node.contained hd)
 
 	let dir_from_source ~src ~dst =
-		let directions = Hashtbl.fold (
-			fun dir dest a ->
-				if src == dest_in_link dest
-				then dir :: a
-				else a			
-		) (exits_of_mudobject dst) [] in
-			try Some (List.hd directions)
-			with Failure _ -> None
-					
+		let src' = node_of_mudobject src in
+		let exits = Node.destinations_of src' Exit in
+		let dsts = List.map 
+			(fun i -> 
+				let mo = Node.contained i in
+					(direction_of_exit mo, destination_of_exit mo))
+			exits 
+		in 
+		let exits' = List.filter (fun (dir, dst') -> dst' == dst) dsts in
+			match exits' with
+				| [] -> None
+				| [hd]
+				| hd :: _ -> Some (fst hd)
+		
 	let portal_in_direction ~src ~dir =
-		let exits = exits_of_mudobject src in
 		let link = 
-			try Hashtbl.find exits dir
+			try exit_by_dir src dir
 			with Not_found -> failwith "No portal in that direction"
 		in
-			match portal_in_link link with
+			match portal_of_exit link with
 				| Some mo -> mo
 				| None -> failwith "No portal in that direction"
 

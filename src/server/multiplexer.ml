@@ -65,7 +65,7 @@ let stop m =
 let timeout m =
 	let fudge = 1.0 /. 1000000.0 in
 		try
-			let next_event = Workqueue.top_priority () +. fudge in
+			let next_event = Game.top_priority () +. fudge in
 			let till_next = next_event -. Unix.gettimeofday () in
 				min m.timeout till_next
 		with Prioqueue.Queue_is_empty -> m.timeout
@@ -89,6 +89,8 @@ let run_callback thunk =
 	try thunk ()
 	with e -> Utils.guard_exception e
 
+let drain_game_output =	emitl
+
 let pump m =
 	let handle_read' = handle_read m
 	in
@@ -98,8 +100,9 @@ let pump m =
 	in
 		Hashtbl.iter rm_socket m.switchboard;
 		List.iter handle_read' (poll_readable m);
-		Workqueue.pump_till_current ();
+		Game.pump_till_current ();
 		List.iter run_callback m.callbacks;
+		Game.output_iter drain_game_output;
 		(* FIXME *)
 		(* need to go through sockets with non-zero write_buffers and
 		   give them a push - if they're in this state, it means that
@@ -132,7 +135,7 @@ let run m =
 		match m.running with
 			| true -> 
 				pump m;
-				(if (Reset.do_shutdown ())
+				(if (Game.do_shutdown ())
 				 then stop m);
 				keep_running m
 			| false -> ()

@@ -213,7 +213,7 @@ let set_timeout () =
 		if first_timeout > 0.0
 			(* FIXME: implement post_absolute *)
 		then let delay = first_timeout -. Unix.gettimeofday () in
-				 Workqueue.post ~delay (fun () -> ())	
+				 Game.workqueue_post ~delay (fun () -> ())	
 
 (* this should enumerate the monster daemons and kick them *)
 let pump_events () =

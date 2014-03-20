@@ -41,6 +41,6 @@ let die ~actor =
 		disconnect ~actor
 
 let check_deaths () = 
-	let pp = Socket.current_players () in
+	let pp = Game.current_players () in
 	let deaded = List.filter (fun p -> Model.Props.is_dead p) pp in
 		List.iter (fun actor -> die ~actor) deaded

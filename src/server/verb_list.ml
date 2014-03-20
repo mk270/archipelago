@@ -92,12 +92,12 @@ let vv = [
 	  v_frame = Unary cheat;
 	  v_args = [];			
 	};
-	
+	(*
 	{ v_name = "whentick" ;
 	  v_frame = Unary when_next;
 	  v_args = [];			
 	};
-	
+	*)
 	{ v_name = "probe" ;
       v_frame = Binary probe;
 	  v_args = [Var (Patient, ItemPresent)];			
@@ -309,6 +309,11 @@ let vv = [
 	{ v_name = "shutdown";
 	  v_frame = Unary run_shutdown;
 	  v_args = [];
+	};
+
+	{ v_name = "exterminate"; (* test verb *)
+	  v_frame = Binary exterminate;
+	  v_args = [ Var (Patient, MonsterPresent); ]
 	};
 
 ]

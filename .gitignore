@@ -13,3 +13,7 @@ _build/
 META
 *.byte
 *.native
+myocamlbuild.ml
+_tags
+setup.ml
+db/island.db

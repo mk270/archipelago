@@ -54,12 +54,14 @@ type socket_role = Listener of int * proto | Connection of file_descr
 let player_sessions = ref []
 
 let remove_session_link ~player =
-	player_sessions := List.remove_assq player !player_sessions
+	player_sessions := List.remove_assq player !player_sessions;
+	Game.remove_current_player player
 
 let add_session_link ~player ~session = 
 	assert (not (List.mem_assq player !player_sessions));
 	
-	player_sessions := (player, session) :: !player_sessions
+	player_sessions := (player, session) :: !player_sessions;
+	Game.add_current_player player
 
 let current_players () = List.map fst !player_sessions
 

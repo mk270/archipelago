@@ -60,7 +60,7 @@ let new_wind ~player ~indoors ~current_weather ~new_weather ~climate =
 	in
 	let w = { current_weather with w_wind = new_weather.w_wind }
 	in
-		Socket.emitl player (msg ^ msg2 ^ ".");
+		Game.emitl player (msg ^ msg2 ^ ".");
 		Model.Props.set_local_weather player w
 			(* FIXME: blowout *)
 
@@ -173,10 +173,10 @@ let new_rain ~player ~indoors ~current_weather ~new_weather ~climate =
 		ignore(follow_on);
 		Model.Props.set_local_weather player w;
 		(if "" <> msg
-		 then Socket.emitl player (msg' ^ msg2 ^ "."))
+		 then Game.emitl player (msg' ^ msg2 ^ "."))
 
 let handle_clouds ~player ~sudden ~body cloudy_current cloudy_new =
-	let emit = Socket.emitl player in
+	let emit = Game.emitl player in
 	let spr = Printf.sprintf in
 		match cloudy_current, cloudy_new, sudden with
 			| true, false, true  ->
@@ -233,15 +233,15 @@ let new_temperature ~player ~indoors ~current_weather ~new_weather =
 	in
 	let w = { current_weather with w_temperature = new_weather.w_temperature }
 	in
-		Socket.emitl player (msg ^ msg2 ^ ".");
+		Game.emitl player (msg ^ msg2 ^ ".");
 		Model.Props.set_local_weather player w
 
 let new_time_of_day ~player ~new_weather ~climate ~current_tod ~new_tod =
 	Model.Props.set_time_of_day player new_tod;
 	if new_weather.w_clouds < 5
 	then match new_tod with
-		| Dawn -> Socket.emitl player ((new_sun_msg new_tod) ^ (dawn_effect climate) ^ ".")
-		| Dusk -> Socket.emitl player ((new_sun_msg new_tod) ^ (dusk_effect climate) ^ ".")
+		| Dawn -> Game.emitl player ((new_sun_msg new_tod) ^ (dawn_effect climate) ^ ".")
+		| Dusk -> Game.emitl player ((new_sun_msg new_tod) ^ (dusk_effect climate) ^ ".")
 		| _ -> ()
 
 let adjust_weather ~player ~climate new_weather =

@@ -10,11 +10,12 @@
 *)
 
 open Utils
-open Socket
 open Model
 open Printf
 open Direction
 open Aperture
+
+let emitl = Game.emitl
 
 let level_change ~actor ~cur_level ~new_level =
 	let rise = new_level > cur_level in
@@ -184,10 +185,12 @@ let tick ~actor =
 		Daemon.start dmn
 *)
 
+(*
 let when_next ~actor =
 	let tp = Workqueue.top_priority () in
 	let report = Printf.sprintf "Next tick at: %10.10f" tp in
 		emitl actor report
+*)
 
 let gamestat ~actor =
 	(* version, boot time, last reset, war, cloak, players,
@@ -403,6 +406,11 @@ let attack ~actor ~patient =
 	Fight.set_opponent actor patient;
 	emitl actor (Grammar.render ~patient "You attack %pu.")
 
+(* test verb *) (* FIXME: stop daemon! *)
+let exterminate ~actor ~patient =
+	Model.destroy patient;
+	emitl actor "Monster destroyed."
+
 let fight ~actor ~word =
 	let move = Combat_state.move_of_string word in
 		Fight.do_move actor ~move
@@ -474,7 +482,7 @@ let set_trap ~actor ~patient =
 		emitl actor "Something went badly wrong"
 	
 let list_players ~actor =
-	let players = Socket.current_players () in
+	let players = Game.current_players () in
 		List.iter (fun p -> emitl actor (Model.Props.get_unvague_name p)) players
 
 let list_people ~actor =
