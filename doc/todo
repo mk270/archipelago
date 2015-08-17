@@ -1,0 +1,10 @@
+next jobs:
+
+* put model into its own packed module
+* consider how to do the same for the remaining code (e.g., follow
+    existing layout)
+* get the model <-> network interaction into an lwt-friendly state
+* find out if lua and lwt play well together
+
+* make a way of testing the quests and other subgames, through the client
+* re-implement all of island

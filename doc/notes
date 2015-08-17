@@ -1,0 +1,10 @@
+If ocaml-lua works ok with Lwt, we can use it for scripting events,
+inform6 style.
+
+This could be for handling events/triggers/hooks etc
+
+http://inform-fiction.org/manual/html/tables.html#tbl6b
+
+The lua code could be lightly linked against db objects; there'd need
+to be a tool for compiling the sqlite DB from another base DB + Lua sources
+
